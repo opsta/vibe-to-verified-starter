@@ -29,10 +29,18 @@ Three human gates. The agent stops at each one and waits for you:
 
 ---
 
+## Before the event (organiser fills in)
+
+- [ ] `<ORG>`: GitHub org of the public `verified` and starter repos (used in sections 1.3 and 1.4)
+- [ ] `<event-id>`: GDG event credit id for the claim link (section 1.5)
+- [ ] `<YOUR_EVENT_CREDIT_PROJECT>`: shown to attendees by the claim flow (section 5)
+
+---
+
 ## 1. Set up (minutes 0-10)
 
 You need: a personal `@gmail.com` account (18 or older; work and school accounts do not work for
-Antigravity), Git, Node.js 20 or newer, and a terminal.
+Antigravity), Git, Node.js 22.12 or newer (LTS 24 recommended), and a terminal. Check with `node -v`: it must print v22.12 or higher.
 
 ### 1.1 Install `agy`
 
@@ -104,7 +112,7 @@ the target for everything that follows.
 ### 1.4 Install the two plugins
 
 ```sh
-agy plugin install https://github.com/gemini-cli-extensions/conductor
+agy plugin install https://github.com/gemini-cli-extensions/conductor   # verify in dry run
 agy plugin install https://github.com/<ORG>/verified
 agy plugin list
 ```
@@ -114,7 +122,7 @@ Expected: both `conductor` and `verified` appear in the list.
 
 ### 1.5 Claim the event credit (needed in section 5)
 
-Open the claim link on the board (`trygcp.dev/claim/<event-id>`), sign in with your personal
+Open the claim link on the board (`trygcp.dev/claim/<event-id>`) <!-- verify in dry run -->, sign in with your personal
 `@gmail.com`, and accept. No card is needed. Allow a few minutes for the credit to activate.
 Write down the project or billing account name it gives you. If the claim fails, do not worry:
 use the fallback box at the end for the deploy.
@@ -139,8 +147,10 @@ agy
 ```
 <!-- verify in dry run: how Conductor skills are invoked in agy (slash name) -->
 
+If a command isn't found, type `/` and pick the Conductor (or verify) entry from the list.
+
 Conductor asks questions one at a time. Answer like this. Whenever it offers a mode, choose
-**Interactive** only if you have time; **Autogenerate** is fine for the product questions.
+**Autogenerate** (it fits the 4-minute budget). Interactive mode is for at home.
 
 | Conductor asks about | Answer |
 |---|---|
