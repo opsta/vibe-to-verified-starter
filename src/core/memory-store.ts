@@ -1,7 +1,7 @@
 import type { QuestionStore } from "./store";
 import { DuplicateVoteError, ValidationError, type Question } from "./types";
 
-// Limit counts Unicode code points so it matches the Firestore rules check.
+// Limit counts Unicode code points; the Firestore rules enforce the same limit.
 const MAX_LENGTH = 280;
 
 export function createMemoryStore(seed: Question[] = []): QuestionStore {

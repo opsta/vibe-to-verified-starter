@@ -6,7 +6,7 @@ import {
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import { deleteDoc, doc, getDoc, increment, setDoc, updateDoc, writeBatch, type Firestore } from "firebase/firestore";
-import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 let env: RulesTestEnvironment;
 
@@ -47,15 +47,25 @@ describe("questions create", () => {
     await assertFails(setDoc(doc(db, "questions/q1"), question("hi", "bob")));
   });
 
-  it("text must be non-empty and at most 560 UTF-16 units", async () => {
-    // size() counts UTF-16 units, so the rule cap is 2x the 280 code point
-    // client limit; the client enforces the exact limit.
+  it("text must be trimmed and 1..280 code points", async () => {
     const db = env.authenticatedContext("alice").firestore();
     await assertFails(setDoc(doc(db, "questions/q1"), question("")));
+    await assertFails(setDoc(doc(db, "questions/w1"), question("   \n\t ")));
+    await assertFails(setDoc(doc(db, "questions/w2"), question(" hi")));
+    await assertFails(setDoc(doc(db, "questions/w3"), question("hi ")));
+    await assertSucceeds(setDoc(doc(db, "questions/o1"), question("a")));
+    await assertSucceeds(setDoc(doc(db, "questions/o2"), question("a b")));
     await assertSucceeds(setDoc(doc(db, "questions/q2"), question("a".repeat(280))));
-    await assertSucceeds(setDoc(doc(db, "questions/q3"), question("a".repeat(560))));
-    await assertFails(setDoc(doc(db, "questions/q4"), question("a".repeat(561))));
-    await assertFails(setDoc(doc(db, "questions/q5"), question("😀".repeat(281))));
+    await assertFails(setDoc(doc(db, "questions/q3"), question("a".repeat(281))));
+    await assertFails(setDoc(doc(db, "questions/q4"), question("😀".repeat(281))));
+  });
+
+  it("counts Thai tone marks as code points (280 ok, 281 denied)", async () => {
+    const db = env.authenticatedContext("alice").firestore();
+    const at280 = "ที่".repeat(93) + "ก";
+    expect([...at280]).toHaveLength(280);
+    await assertSucceeds(setDoc(doc(db, "questions/th1"), question(at280)));
+    await assertFails(setDoc(doc(db, "questions/th2"), question(at280 + "ก")));
   });
 
   it("accepts 280 Thai characters and 280 emoji (what the client accepts)", async () => {
