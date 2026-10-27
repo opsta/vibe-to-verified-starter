@@ -23,19 +23,37 @@ const TYPES = {
 async function resolveFile(urlPath) {
   const rel = normalize(decodeURIComponent(urlPath)).replace(/^([/\\])+/, '');
   const abs = join(ROOT, rel);
-  if (!abs.startsWith(ROOT)) return join(ROOT, 'index.html');
+  if (!abs.startsWith(ROOT)) return null;
   try {
     if ((await stat(abs)).isFile()) return abs;
-  } catch { /* fall through to SPA */ }
-  return join(ROOT, 'index.html');
+  } catch { /* fall through */ }
+  return extname(rel) ? null : join(ROOT, 'index.html');
 }
 
 const server = createServer(async (req, res) => {
   try {
     const { pathname } = new URL(req.url ?? '/', 'http://localhost');
-    const file = await resolveFile(pathname);
+    let file;
+    try {
+      file = await resolveFile(pathname);
+    } catch (e) {
+      if (e instanceof URIError) {
+        res.writeHead(400, { 'content-type': 'text/plain', 'x-content-type-options': 'nosniff' });
+        res.end('bad request');
+        return;
+      }
+      throw e;
+    }
+    if (!file) {
+      res.writeHead(404, { 'content-type': 'text/plain', 'x-content-type-options': 'nosniff' });
+      res.end('not found');
+      return;
+    }
     const body = await readFile(file);
-    res.writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream' });
+    res.writeHead(200, {
+      'content-type': TYPES[extname(file)] ?? 'application/octet-stream',
+      'x-content-type-options': 'nosniff',
+    });
     res.end(req.method === 'HEAD' ? undefined : body);
   } catch {
     res.writeHead(500, { 'content-type': 'text/plain' });

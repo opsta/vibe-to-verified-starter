@@ -6,8 +6,10 @@ beforeEach(() => {
 
 it("main mounts and renders seed questions with memory store", async () => {
   const { boot } = await import("../main");
-  await boot(document.getElementById("app") as HTMLElement, {});
-  const items = document.querySelectorAll("#app li");
-  expect(items.length).toBe(3);
-  expect(document.getElementById("app")?.textContent).toContain("What is verified vibe coding?");
+  const root = document.getElementById("app") as HTMLElement;
+  await boot(root, {}); // empty env forces the memory store
+  const text = root.textContent ?? "";
+  expect(text).toContain("What is verified vibe coding?");
+  expect(text).toContain("How do I upvote a question?");
+  expect(text).toContain("Can I ask in Thai?");
 });
