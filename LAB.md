@@ -90,9 +90,9 @@ Inside `agy`, type:
 /usage
 ```
 
-Expected: your free plan and its weekly quota. The free model is Gemini 3.8 Flash. The quota
+Use this privately: do not put the output on a shared screen (it also lists model groups that are not part of this lab). Expected: your free plan and its weekly quota. The free model is Gemini 3.8 Flash. The quota
 number is not published, so keep prompts small. Leave `agy` with `/exit` (or Ctrl+C twice).
-<!-- verify in dry run: /usage output, exit command -->
+<!-- verify in dry run: exit command -->
 
 ### 1.3 Get the starter
 
@@ -145,7 +145,6 @@ agy
 ```
 /conductor-setup
 ```
-<!-- verify in dry run: how Conductor skills are invoked in agy (slash name) -->
 
 If a command isn't found, type `/` and pick the Conductor (or verify) entry from the list.
 
@@ -217,23 +216,20 @@ Conductor now proposes `plan.md`: phases and tasks. Check:
 
 ### 3.1 Run the build safely
 
-Quit `agy` and start it again in review mode with the sandbox on:
+Your safety is **Request Review** mode: every file change and command waits for you. Choose it
+in `agy` as the approval mode.
+<!-- verify in dry run: exact way to pick Request Review (flag or /settings) -->
 
-```sh
-agy --sandbox
-```
+Optional: start `agy --sandbox` where your OS supports it. **Linux note:** on Ubuntu with the
+default AppArmor settings (unprivileged user namespaces blocked) the sandbox does nothing and
+auto mode refuses to run. Do not rely on it; Request Review is the protection.
 
-In the session, choose **Request Review** as the approval mode, so every file change waits for you.
-<!-- verify in dry run: exact flag and the way to pick Request Review (flag or /settings) -->
+After you approve the plan (Gate 2), the agent normally builds everything in one long turn
+(about 9 minutes), writes `src/ui/app.ts` and tests, and may run `/verify` itself. You do not
+need to type `/conductor-implement`. If the agent stops before building, say: `Gate 2 approved. Build it.`
+Conductor's per-phase manual checks may be skipped; that is fine, Gate 3 is where you check.
 
-```
-/conductor-implement
-```
-
-Expected: the agent works through `plan.md` task by task, writes `src/ui/app.ts` and tests, and
-ticks tasks off.
-
-Review each change before you accept it. Look at the full diff at any time:
+While it works, review the changes. Look at the full diff at any time:
 
 ```
 /diff
@@ -274,12 +270,11 @@ Open the address it prints. You should see the list, an ask box and vote buttons
 
 ## 4. Verify (minutes 50-65)
 
-The build says "done". Now prove it.
+The build says "done". Now prove it. If the agent already ran `/verify` during the build, read its `VERIFY.md` below; otherwise run:
 
 ```
 /verify
 ```
-<!-- verify in dry run: slash name for the verify skill -->
 
 The `verified` plugin runs the contract command, starts a fresh read-only checker, and (for the
 `[ui]` criteria) opens the app in a browser and takes screenshots. It writes `VERIFY.md`.
