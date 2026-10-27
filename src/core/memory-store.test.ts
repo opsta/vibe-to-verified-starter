@@ -9,17 +9,26 @@ describe("memory store", () => {
     await expect(store.ask("  \n\t ", "u1")).rejects.toBeInstanceOf(ValidationError);
   });
 
-  it("accepts 280 Thai chars, rejects 281", async () => {
+  it("accepts 280 Thai code points, rejects 281", async () => {
     const store = createMemoryStore();
     const ok = await store.ask("ก".repeat(280), "u1");
     expect(ok.text).toHaveLength(280);
     await expect(store.ask("ก".repeat(281), "u1")).rejects.toBeInstanceOf(ValidationError);
   });
 
-  it("counts emoji as one character each", async () => {
+  it("counts each emoji as one code point", async () => {
     const store = createMemoryStore();
     await expect(store.ask("😀".repeat(280), "u1")).resolves.toBeDefined();
     await expect(store.ask("😀".repeat(281), "u1")).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("counts Thai tone marks as separate code points", async () => {
+    const store = createMemoryStore();
+    // "ที่" is 3 code points (ท, ี, ่); 93 repeats = 279, plus one more = 280.
+    const at280 = "ที่".repeat(93) + "ก";
+    expect([...at280]).toHaveLength(280);
+    await expect(store.ask(at280, "u1")).resolves.toBeDefined();
+    await expect(store.ask(at280 + "ก", "u1")).rejects.toBeInstanceOf(ValidationError);
   });
 
   it("trims text and starts at zero votes", async () => {
