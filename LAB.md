@@ -331,7 +331,8 @@ minutes, then it prints `Service URL: https://vtv-....run.app`. Open it.
 
 Without Firebase settings the deployed app uses an in-memory store and a demo user. That is fine
 for the lab: you see your own working app on a public URL. To connect a real Firestore, see
-`docs/deploy.md` (optional, only if you have time).
+`docs/deploy.md` (optional, only if you have time; use the Firebase console for the Firebase steps,
+the `firebase projects:addfirebase` command can fail with 403). The deploy takes about 2 minutes.
 
 > **Stuck?** `git switch step-5-deployed` is the final state. Cloud Run errors: read the last
 > lines of the build log first; the usual cause is billing not linked to the project yet.
