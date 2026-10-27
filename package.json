@@ -8,9 +8,14 @@
     "dev": "vite",
     "build": "vite build",
     "test": "vitest run",
-    "start": "node server.mjs"
+    "start": "node server.mjs",
+    "test:rules": "vitest run --config vitest.rules.config.ts",
+    "check": "node scripts/check.mjs",
+    "test:rules:emu": "firebase emulators:exec --only firestore,auth --project demo-vtv \"npm run test:rules\""
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
+    "firebase": "^13.1.0",
     "typescript": "7.0.2",
     "vite": "8.3.5",
     "vitest": "5.0.5"

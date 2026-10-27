@@ -1,0 +1,50 @@
+rules_version = "2";
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    match /questions/{questionId} {
+      allow read: if true;
+
+      // Text length: the client enforces 1..280 Unicode code points on the
+      // trimmed text. Verified on the emulator: string.size() counts UTF-16
+      // code units (an emoji counts 2), so 280 emoji = size 560. To never
+      // reject text the client accepts, the rule caps at 560 units (the
+      // worst case for 280 code points). The exact 280 limit is enforced by
+      // the client; rules are a safety net against abuse, not the validator.
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(["text", "authorId", "votes", "createdAt"])
+        && request.resource.data.keys().hasAll(["text", "authorId", "votes", "createdAt"])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() >= 1
+        && request.resource.data.text.size() <= 560
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.votes == 0
+        && request.resource.data.createdAt is number;
+
+      // Only an upvote: votes +1, nothing else changes, and the caller's
+      // vote doc is created in the same atomic write.
+      allow update: if signedIn()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["votes"])
+        && request.resource.data.votes == resource.data.votes + 1
+        && !exists(/databases/$(database)/documents/questions/$(questionId)/votes/$(request.auth.uid))
+        && existsAfter(/databases/$(database)/documents/questions/$(questionId)/votes/$(request.auth.uid));
+
+      allow delete: if false;
+
+      match /votes/{voteId} {
+        // Create only (no update), one doc per user, id equals uid, empty body.
+        allow create: if signedIn()
+          && voteId == request.auth.uid
+          && request.resource.data.keys().size() == 0
+          && exists(/databases/$(database)/documents/questions/$(questionId))
+          && getAfter(/databases/$(database)/documents/questions/$(questionId)).data.votes
+             == get(/databases/$(database)/documents/questions/$(questionId)).data.votes + 1;
+        allow read: if signedIn() && voteId == request.auth.uid;
+      }
+    }
+  }
+}
