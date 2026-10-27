@@ -102,3 +102,15 @@ test('package.json, vite.config.ts and tsconfig.json are locked', () => {
   for (const n of ['package.json', 'vite.config.ts', 'tsconfig.json']) assert.match(lock, new RegExp(`  ${n.replace('.', '\\.')}$`, 'm'));
   f.cleanup();
 });
+
+test('editing a guard script makes check-core exit 1', () => {
+  const f = fixture();
+  for (const n of ['check-tests.mjs', 'check-tests.test.mjs', 'check.mjs', 'check-core.test.mjs']) f.put(`scripts/${n}`, 'x\n');
+  run(f.root, '--write');
+  assert.equal(run(f.root).status, 0);
+  f.put('scripts/check-tests.mjs', 'process.exit(0)\n');
+  const r = run(f.root);
+  assert.equal(r.status, 1);
+  assert.match(r.stdout, /CORE CHANGED scripts\/check-tests\.mjs/);
+  f.cleanup();
+});

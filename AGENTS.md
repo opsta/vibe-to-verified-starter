@@ -8,6 +8,7 @@ Web app. Attendees see questions sorted by votes, sign in to ask, upvote once.
 - Write app code only in `src/ui/`.
 - Write tests only in `src/ui/**/*.test.ts`.
 - Never edit or delete a test to make it pass. If a test looks wrong, stop and ask the human.
+- Never skip, weaken or delete a test; Gate 3 will show every test change.
 - Do not add dependencies.
 
 ## How to build

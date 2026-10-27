@@ -2,11 +2,15 @@
 # Format: <sha256>  <path>   (one per line; hash of the file with CRLF turned into LF)
 # Regenerate (maintainers only): node scripts/check-core.mjs --write
 # CORE.lock cannot hash itself. Review any diff of this file by hand.
-a1445f1ea4df1bd8ff4a0cef94c16abcb62016206b8ba89d2da510cbf7ec69ef  .github/workflows/ci.yml
+e38bb22b2c2ab3d988ad34620f0a01aff9de365414dd0bee145a4b65f958a933  .github/workflows/ci.yml
 e19bb0d4e5c4605d809f5a4142424067dd45724b5364440da21724404662d76c  firebase.json
 19ac253eb2151847d94c00980042c21cf85af616faf44a8fd91847d2386b454a  firestore.rules
 74a7fc7e4f68df75565eef52156ed4ee83e09e120909db51ec4d428e84b15b03  package.json
-ed95ec2a116fb0d9ce2ce0b71bf5d4362a18f21a9f9960bf48cf41e48ab57cc1  scripts/check-core.mjs
+0e0b1ee677595ef14d6777cd99da8ea318ea1aa1631ca87818ded792c8451a4c  scripts/check-core.mjs
+406973abdbe6491e829683037fe00ca9b2dc4a3ab32966559f06a6d96575b07f  scripts/check-core.test.mjs
+70fade942b633f741fec83b999674faf125f734cf375c2c64c6617253c72db61  scripts/check-tests.mjs
+30c1c8b5e59139297852a7b713a06ca46637e66f1a208e704046775757f91b25  scripts/check-tests.test.mjs
+de827f7a2aca617aaab6a1f4e6e56f61691c17c0a158fc19e5c72a21bebe621a  scripts/check.mjs
 32708a8a37e935e2a3ee6cbd8adc58302a53a5ce6967a38d4faddeb4a059f040  src/core/firestore-store.ts
 2e0b68f66e444dbbdf31d3ea610e98ae66c73009d20d58e7923f810b2c892daa  src/core/memory-store.test.ts
 b85612d3ca6e730ec63fef06d32f8545a455165d80dd8c376c3236742e21367a  src/core/memory-store.ts

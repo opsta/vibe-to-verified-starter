@@ -19,9 +19,9 @@ function run(files) {
 }
 
 test('clean tests exit 0', () => {
-  assert.equal(run({ 'src/ui/a.test.ts': 'it("x", () => { expect(1).toBe(1); });\n' }).status, 0);
+  assert.equal(run({ 'src/ui/a.test.ts': 'it("x", () => { expect(add(1, 2)).toBe(3); });\n' }).status, 0);
 });
-for (const bad of ['it.skip("x", f)', 'describe.only("x", f)', 'it.todo("x")', 'expect(true).toBe(true)', 'expect( true )']) {
+for (const bad of ['it.skip("x", f)', 'describe.only("x", f)', 'it.todo("x")', 'expect(true).toBe(true)', 'expect( true )', 'it.skipIf(x)("a", f)', 'it.runIf(x)("a", f)', 'it.fails("a", f)', "it['skip'](\"a\", f)", 'it["only"]("a", f)', 'expect(1).toBe(1)', 'expect(false).toBe(false)', 'expect("a").toBe("a")', 'expect(-2.5).toBe(1)']) {
   test(`fails on ${bad}`, () => {
     const r = run({ 'src/ui/a.test.ts': `${bad}\n` });
     assert.equal(r.status, 1);

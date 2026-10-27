@@ -4,7 +4,12 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const BAD = [/\.skip\s*\(/, /\.only\s*\(/, /\bit\.todo\s*\(/, /\btest\.todo\s*\(/, /expect\(\s*true\s*\)/];
+const BAD = [
+  /\.(skip|only|skipIf|runIf|fails)\s*\(/,
+  /\[\s*['"](skip|only)['"]\s*\]/,
+  /\b(it|test)\.todo\s*\(/,
+  /expect\(\s*(true|false|-?\d[\d_.]*|'[^']*'|"[^"]*"|`[^`$]*`)\s*\)/,
+];
 
 function* walk(dir) {
   for (const name of readdirSync(dir)) {
