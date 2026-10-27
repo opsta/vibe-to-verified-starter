@@ -10,6 +10,7 @@ Web app. Attendees see questions sorted by votes, sign in to ask, upvote once.
 - Never edit or delete a test to make it pass. If a test looks wrong, stop and ask the human.
 - Never skip, weaken or delete a test; Gate 3 will show every test change.
 - Do not add dependencies.
+- Entry: `src/ui/app.ts` exports `mountApp(root, store, userId)`; replace its body. Sign-in is anonymous auth in prod and a fixed demo user in memory mode; `main.ts` passes `userId`, so build no auth flow.
 
 ## How to build
 - Use the `QuestionStore` interface from `src/core/store.ts`. Read it first.
