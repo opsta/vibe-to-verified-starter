@@ -14,6 +14,10 @@ const FILES = [
   'firebase.json',
   'scripts/check-core.mjs',
   'vitest.rules.config.ts',
+  'vitest.config.ts',
+  'package.json',
+  'vite.config.ts',
+  'tsconfig.json',
   '.github/workflows/ci.yml',
 ];
 
@@ -61,6 +65,9 @@ export function check(root) {
   for (const [path, sha] of entries) {
     const abs = join(root, path);
     if (!existsSync(abs) || hashContent(readFileSync(abs)) !== sha) problems.push(`CORE CHANGED ${path}`);
+  }
+  for (const path of lockedPaths(root)) {
+    if (!entries.has(path) && FILES.includes(path)) problems.push(`CORE MISSING ${path}`);
   }
   for (const d of DIRS) {
     for (const path of walk(root, d)) if (!entries.has(path)) problems.push(`CORE CHANGED ${path} (not in ${LOCK})`);

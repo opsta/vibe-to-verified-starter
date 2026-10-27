@@ -13,7 +13,7 @@
     "check": "node scripts/check.mjs",
     "check:core": "node scripts/check-core.mjs",
     "test:scripts": "node --test scripts",
-    "verify:contract": "tsc --noEmit && vitest run && node scripts/check-core.mjs && node scripts/check.mjs",
+    "verify:contract": "tsc --noEmit && vitest run && node scripts/check-core.mjs && node scripts/check-tests.mjs && node scripts/check.mjs",
     "test:rules:emu": "firebase emulators:exec --only firestore,auth --project demo-vtv \"npm run test:rules\""
   },
   "devDependencies": {

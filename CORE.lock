@@ -2,10 +2,11 @@
 # Format: <sha256>  <path>   (one per line; hash of the file with CRLF turned into LF)
 # Regenerate (maintainers only): node scripts/check-core.mjs --write
 # CORE.lock cannot hash itself. Review any diff of this file by hand.
-7887e4207b2477a6e5c06907e2a3b7bb77a23aff76084605503dd3c237d4f932  .github/workflows/ci.yml
+a1445f1ea4df1bd8ff4a0cef94c16abcb62016206b8ba89d2da510cbf7ec69ef  .github/workflows/ci.yml
 e19bb0d4e5c4605d809f5a4142424067dd45724b5364440da21724404662d76c  firebase.json
 19ac253eb2151847d94c00980042c21cf85af616faf44a8fd91847d2386b454a  firestore.rules
-89c4132339d803a7828e005b67072f9a69fd3d1b01668ebf3615e5e028f0f44e  scripts/check-core.mjs
+74a7fc7e4f68df75565eef52156ed4ee83e09e120909db51ec4d428e84b15b03  package.json
+ed95ec2a116fb0d9ce2ce0b71bf5d4362a18f21a9f9960bf48cf41e48ab57cc1  scripts/check-core.mjs
 32708a8a37e935e2a3ee6cbd8adc58302a53a5ce6967a38d4faddeb4a059f040  src/core/firestore-store.ts
 2e0b68f66e444dbbdf31d3ea610e98ae66c73009d20d58e7923f810b2c892daa  src/core/memory-store.test.ts
 b85612d3ca6e730ec63fef06d32f8545a455165d80dd8c376c3236742e21367a  src/core/memory-store.ts
@@ -13,4 +14,6 @@ bd5d07d5c5bc3974f3be443e3474736b0f68d3212cd668e362c8efeff1b08979  src/core/store
 0ea9ebaa58849e4ea0428355d812b51c6a4653632f4096080e2c057fa173b8a5  src/core/types.ts
 ffc7a340bb3a2a5b2736b55381044b224008e482b1bb5deedb530a55e0a2edd9  test-rules/firestore-store.test.ts
 6d5525a7504a1aedc180a2dded01b9dad70a00fddb6e7ab02f30ce34d09b6804  test-rules/rules.test.ts
+dfe5f0202f9f5bb1834f7f1eb937f994879f3df581d418463775b674d9a25448  tsconfig.json
+2f5ab513512efd4fcf9ce898693526f8743b2b6f8ffe23f939452973615a57dd  vite.config.ts
 106d7c405ec5dba6c22335fe9000d3938921b68ac58f7f3378507e92f3d0d6ee  vitest.rules.config.ts

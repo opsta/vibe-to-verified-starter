@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -78,5 +78,27 @@ test('new unlisted file under src/core exits 1', () => {
 test('missing CORE.lock exits 1', () => {
   const f = fixture();
   assert.equal(run(f.root).status, 1);
+  f.cleanup();
+});
+
+test('deleting a lock line for a canonical file exits 1 with CORE MISSING', () => {
+  const f = fixture();
+  f.put('package.json', '{}\n');
+  run(f.root, '--write');
+  const lock = join(f.root, 'CORE.lock');
+  const kept = readFileSync(lock, 'utf8').split('\n').filter((l) => !l.endsWith('  package.json'));
+  writeFileSync(lock, kept.join('\n'));
+  const r = run(f.root);
+  assert.equal(r.status, 1);
+  assert.match(r.stdout, /CORE MISSING package\.json/);
+  f.cleanup();
+});
+
+test('package.json, vite.config.ts and tsconfig.json are locked', () => {
+  const f = fixture();
+  for (const n of ['package.json', 'vite.config.ts', 'tsconfig.json']) f.put(n, 'x\n');
+  run(f.root, '--write');
+  const lock = readFileSync(join(f.root, 'CORE.lock'), 'utf8');
+  for (const n of ['package.json', 'vite.config.ts', 'tsconfig.json']) assert.match(lock, new RegExp(`  ${n.replace('.', '\\.')}$`, 'm'));
   f.cleanup();
 });

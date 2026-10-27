@@ -21,4 +21,15 @@ jobs:
         run: npx -y firebase-tools@15.34.1 emulators:exec --only firestore,auth --project demo-vtv "npx vitest run --config vitest.rules.config.ts"
       - run: npm run test:scripts
       - run: npm run check:core
+      # Untested until the repo is on GitHub. Runs the BASE branch's checker and lock
+      # against the PR tree, so editing the checker or CORE.lock in a PR is caught.
+      - name: Core check with base-branch checker and lock
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --depth=1 origin "${{ github.base_ref }}"
+          tmp="$(mktemp -d)"
+          tar --exclude=node_modules --exclude=.git -cf - . | tar -xf - -C "$tmp"
+          git show "FETCH_HEAD:scripts/check-core.mjs" > "$tmp/scripts/check-core.mjs"
+          git show "FETCH_HEAD:CORE.lock" > "$tmp/CORE.lock"
+          (cd "$tmp" && node scripts/check-core.mjs)
       - run: npm run check
