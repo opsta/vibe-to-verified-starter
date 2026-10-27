@@ -5,7 +5,7 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { doc, getDoc, increment, setDoc, writeBatch, type Firestore } from "firebase/firestore";
+import { deleteDoc, doc, getDoc, increment, setDoc, updateDoc, writeBatch, type Firestore } from "firebase/firestore";
 import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
 
 let env: RulesTestEnvironment;
@@ -27,7 +27,7 @@ const question = (text: string, uid = "alice", extra: Record<string, unknown> = 
   text,
   authorId: uid,
   votes: 0,
-  createdAt: 1,
+  createdAt: Date.now(),
   ...extra,
 });
 
@@ -62,6 +62,15 @@ describe("questions create", () => {
     const db = env.authenticatedContext("alice").firestore();
     await assertSucceeds(setDoc(doc(db, "questions/t1"), question("ก".repeat(280))));
     await assertSucceeds(setDoc(doc(db, "questions/e1"), question("😀".repeat(280))));
+  });
+
+  it("createdAt must be near server time", async () => {
+    const db = env.authenticatedContext("alice").firestore();
+    await assertFails(setDoc(doc(db, "questions/c1"), question("hi", "alice", { createdAt: -1e15 })));
+    await assertFails(setDoc(doc(db, "questions/c2"), question("hi", "alice", { createdAt: 1 })));
+    await assertFails(setDoc(doc(db, "questions/c3"), question("hi", "alice", { createdAt: Date.now() + 3600_000 })));
+    await assertFails(setDoc(doc(db, "questions/c4"), question("hi", "alice", { createdAt: 4e15 })));
+    await assertSucceeds(setDoc(doc(db, "questions/c5"), question("hi", "alice", { createdAt: Date.now() })));
   });
 
   it("votes must start at 0", async () => {
@@ -103,6 +112,38 @@ describe("questions update and delete", () => {
     b.set(doc(db, "questions/q1/votes/bob"), {});
     b.update(doc(db, "questions/q1"), { votes: increment(1) });
     await assertSucceeds(b.commit());
+  });
+
+  it("question cannot be deleted", async () => {
+    const db = env.authenticatedContext("alice").firestore();
+    await assertFails(deleteDoc(doc(db, "questions/q1")));
+  });
+
+  it("votes cannot be decremented", async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "questions/q1"), { votes: 3 }, { merge: true });
+    });
+    const db = env.authenticatedContext("alice").firestore();
+    await assertFails(updateDoc(doc(db, "questions/q1"), { votes: increment(-1) }));
+  });
+
+  it("authorId and createdAt cannot change on update", async () => {
+    const db = env.authenticatedContext("bob").firestore();
+    for (const patch of [{ authorId: "bob" }, { createdAt: 5 }]) {
+      const b = writeBatch(db);
+      b.set(doc(db, "questions/q1/votes/bob"), {});
+      b.update(doc(db, "questions/q1"), { votes: increment(1), ...patch });
+      await assertFails(b.commit());
+    }
+  });
+
+  it("two +1 increments in one batch are rejected", async () => {
+    const db = env.authenticatedContext("bob").firestore();
+    const b = writeBatch(db);
+    b.set(doc(db, "questions/q1/votes/bob"), {});
+    b.update(doc(db, "questions/q1"), { votes: increment(1) });
+    b.update(doc(db, "questions/q1"), { votes: increment(1) });
+    await assertFails(b.commit());
   });
 
   it("votes cannot be bumped without a vote doc", async () => {
@@ -158,6 +199,16 @@ describe("votes", () => {
     await assertSucceeds(vote(db, "bob"));
     await assertFails(vote(db, "bob"));
     await assertFails(setDoc(doc(db, "questions/q1/votes/bob"), {}));
+  });
+
+  it("vote doc cannot be updated, deleted or read by another user", async () => {
+    const bob = env.authenticatedContext("bob").firestore();
+    await assertSucceeds(vote(bob, "bob"));
+    await assertFails(updateDoc(doc(bob, "questions/q1/votes/bob"), { x: 1 }));
+    await assertFails(deleteDoc(doc(bob, "questions/q1/votes/bob")));
+    await assertSucceeds(getDoc(doc(bob, "questions/q1/votes/bob")));
+    const carol = env.authenticatedContext("carol").firestore();
+    await assertFails(getDoc(doc(carol, "questions/q1/votes/bob")));
   });
 
   it("cannot vote on a missing question", async () => {
