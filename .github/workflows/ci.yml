@@ -19,6 +19,6 @@ jobs:
       - run: npm test
       - name: Firestore rules and adapter tests (emulator)
         run: npx -y firebase-tools@15.34.1 emulators:exec --only firestore,auth --project demo-vtv "npx vitest run --config vitest.rules.config.ts"
-      # check:core is added in Task 7; this step fails until then.
+      - run: npm run test:scripts
       - run: npm run check:core
       - run: npm run check
