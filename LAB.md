@@ -31,7 +31,7 @@ Three human gates. The agent stops at each one and waits for you:
 
 ## Before the event (organiser fills in)
 
-- [ ] `<ORG>`: GitHub org of the public `verified` and starter repos (used in sections 1.3 and 1.4)
+- [x] GitHub org: `opsta` (repos `opsta/antigravity-verified` and `opsta/vibe-to-verified-starter`)
 - [ ] `<event-id>`: GDG event credit id for the claim link (section 1.5)
 - [ ] `<YOUR_EVENT_CREDIT_PROJECT>`: shown to attendees by the claim flow (section 5)
 
@@ -97,7 +97,7 @@ number is not published, so keep prompts small. Leave `agy` with `/exit` (or Ctr
 ### 1.3 Get the starter
 
 ```sh
-git clone https://github.com/<ORG>/vibe-to-verified-starter
+git clone https://github.com/opsta/vibe-to-verified-starter
 cd vibe-to-verified-starter
 npm ci
 npm run verify:contract
@@ -113,7 +113,7 @@ the target for everything that follows.
 
 ```sh
 agy plugin install https://github.com/gemini-cli-extensions/conductor   # verify in dry run
-agy plugin install https://github.com/<ORG>/verified
+agy plugin install https://github.com/opsta/antigravity-verified
 agy plugin list
 ```
 
