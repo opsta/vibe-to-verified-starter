@@ -40,7 +40,7 @@ Three human gates. The agent stops at each one and waits for you:
 ## 1. Set up (minutes 0-10)
 
 You need: a personal `@gmail.com` account (18 or older; work and school accounts do not work for
-Antigravity), Git, Node.js 22.12 or newer (LTS 24 recommended), and a terminal. Check with `node -v`: it must print v22.12 or higher.
+Antigravity), Git, Python 3 (Conductor setup uses it), Node.js 22.12 or newer (LTS 24 recommended), and a terminal. Check with `node -v`: it must print v22.12 or higher.
 
 ### 1.1 Install `agy`
 
@@ -145,6 +145,9 @@ agy
 ```
 /conductor-setup
 ```
+<!-- verify in dry run: slash name -->
+
+Setup runs a small Python script (`scripts/resume.py`) to check the project state. You need Python 3 installed, and in Request Review mode you will be asked to approve that command: approve it.
 
 If a command isn't found, type `/` and pick the Conductor (or verify) entry from the list.
 
@@ -224,8 +227,7 @@ Optional: start `agy --sandbox` where your OS supports it. **Linux note:** on Ub
 default AppArmor settings (unprivileged user namespaces blocked) the sandbox does nothing and
 auto mode refuses to run. Do not rely on it; Request Review is the protection.
 
-After you approve the plan (Gate 2), the agent normally builds everything in one long turn
-(about 9 minutes), writes `src/ui/app.ts` and tests, and may run `/verify` itself. You do not
+After you approve the plan (Gate 2), the agent normally builds everything in one long turn, writes `src/ui/app.ts` and tests, and may run `/verify` itself. You do not
 need to type `/conductor-implement`. If the agent stops before building, say: `Gate 2 approved. Build it.`
 Conductor's per-phase manual checks may be skipped; that is fine, Gate 3 is where you check.
 
@@ -275,6 +277,7 @@ The build says "done". Now prove it. If the agent already ran `/verify` during t
 ```
 /verify
 ```
+<!-- verify in dry run: slash name -->
 
 The `verified` plugin runs the contract command, starts a fresh read-only checker, and (for the
 `[ui]` criteria) opens the app in a browser and takes screenshots. It writes `VERIFY.md`.
