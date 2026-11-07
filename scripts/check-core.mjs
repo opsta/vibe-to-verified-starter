@@ -26,6 +26,7 @@ const FILES = [
   'vite.config.ts',
   'tsconfig.json',
   '.github/workflows/ci.yml',
+  '.github/workflows/pipeline.yml',
 ];
 
 const HEADER = `# CORE.lock - files the agent must never edit. Checked by: node scripts/check-core.mjs
