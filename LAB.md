@@ -22,7 +22,7 @@ pass Gates 1 and 2 yourself, then the agent builds.
 
 | Min | Stage | Section | Jump point if stuck |
 |---|---|---|---|
-| 0-5 | Open, claim the cloud credit | 1 | none |
+| 0-5 | Open, claim the cloud credit, set the project, enable the services | 1 | none |
 | 5-10 | Start at `step-1-spec`: read spec and plan, approve | 2 | `step-1-spec` |
 | 10-30 | Build: the agent writes the edges on the locked core | 3 | `step-3-build` |
 | 30-40 | Verify: `VERIFY.md`, accept | 4 | `step-4-verified` |
@@ -41,7 +41,7 @@ pass Gates 1 and 2 yourself, then the agent builds.
 
 - [x] GitHub org: `opsta` (repos `opsta/antigravity-verified` and `opsta/vibe-to-verified-starter`)
 - [ ] `<event-id>`: GDG event credit id for the claim link (section 1)
-- [ ] `<YOUR_EVENT_CREDIT_PROJECT>`: shown to attendees by the claim flow (section 5)
+- [ ] `<YOUR_EVENT_CREDIT_PROJECT>`: shown to attendees by the claim flow (section 1)
 
 ---
 
@@ -49,8 +49,22 @@ pass Gates 1 and 2 yourself, then the agent builds.
 
 Open the claim link on the board (`trygcp.dev/claim/<event-id>`) <!-- verify in dry run -->, sign in with your personal
 `@gmail.com`, and accept. No card is needed. The credit takes a few minutes to activate and lasts
-about 12 hours, so your published app stops the day after. Write down the project it gives you
-(section 5 needs it). If the claim fails, do not worry: use the fallback box at the end for the deploy.
+about 12 hours, so your published app stops the day after. Write down the project it gives you.
+If the claim fails, do not worry: use the fallback box at the end for the deploy.
+
+Then, still in minutes 2-4, point the Google Cloud CLI at that project and enable the services now.
+Why now: the APIs need about a minute before the first deploy works, so by section 5 they are ready.
+
+```sh
+gcloud projects list
+gcloud config set project <YOUR_EVENT_CREDIT_PROJECT>
+gcloud config get-value project
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
+```
+
+Expected: `gcloud config get-value project` prints your event credit project. Use the project made for
+this lab, not a work project. If `services enable` says billing is not enabled, the credit is still
+activating: wait a minute and run it again.
 
 ---
 
@@ -207,21 +221,11 @@ say what is missing and run `/verify` again. Only a person can pass this gate.
 
 ## 5. Publish (minutes 40-50)
 
-Point the Google Cloud CLI at your event credit project (you signed in before the day):
+You set the project and enabled the services in section 1. Skipped that? Run the section 1 commands
+now, then wait 1 minute before you deploy. Check that the CLI still points at your event credit project:
 
 ```sh
-gcloud projects list
-gcloud config set project <YOUR_EVENT_CREDIT_PROJECT>
 gcloud config get-value project
-```
-
-Expected: the last line prints your event credit project. Use the project made for this lab, not
-a work project.
-
-Enable the services Cloud Run needs for a source deploy (first time only, takes about a minute):
-
-```sh
-gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
 ```
 
 Deploy:
@@ -238,7 +242,8 @@ for the lab: you see your own working app on a public URL. To connect a real Fir
 `docs/deploy.md`.
 
 > **Stuck?** `git switch step-5-deployed` is the final state; deploy it with the same command.
-> Cloud Run errors: read the last lines of the build log first; the usual cause is billing not
+> Cloud Run errors: `PERMISSION_DENIED` on Artifact Registry right after enabling? Wait 1 minute and
+> deploy again. Otherwise read the last lines of the build log first; the usual cause is billing not
 > linked to the project yet (the credit takes a few minutes).
 
 ---
@@ -284,6 +289,7 @@ Or stay in the terminal: `git switch step-3-build`, then continue from section 4
 | `npm ci` fails | `node -v` must be an LTS: 22 (22.12+), 24 or 26. Not 23 or 25 |
 | Sign-in loop | Use the personal `@gmail.com`; try a private window |
 | `gcloud` asks you to sign in | `gcloud auth login` with the same `@gmail.com` |
+| `PERMISSION_DENIED` on `artifactregistry.repositories.get` right after enabling the services | The services are still switching on: wait 1 minute and run `gcloud run deploy` again |
 | `git switch step-1-spec` says invalid reference | `git fetch origin` first |
 | `core lock` / `check:core` fails | You or the agent changed a locked file: `git checkout -- src/core CORE.lock` |
 | Windows: line-ending noise | Safe: the lock check ignores CRLF |
