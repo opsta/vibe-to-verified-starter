@@ -1,0 +1,89 @@
+# Speaker demo: a gated delivery pipeline (Build, Secure, Scale).
+#
+#   push to main -> ci (rules tests in the emulator, core lock, test guard, banned words)
+#                -> secret scan (gitleaks, full history)
+#                -> deploy to Cloud Run (Workload Identity Federation, no JSON keys)
+#
+# The deploy job runs only where the repo variables below are set (the upstream repo).
+# In a fork they are absent, so deploy is skipped and the run stays green.
+#   GCP_PROJECT_ID, GCP_REGION, GCP_WIF_PROVIDER, GCP_DEPLOYER_SA, GCP_RUNTIME_SA, GCP_BUILD_SA, CLOUD_RUN_SERVICE
+# The deployer service account cannot change who may call the service: making it public is a one-time
+# step by a project admin, and later deploys keep that setting.
+name: pipeline
+
+on:
+  pull_request:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  secret-scan:
+    # On main: only after ci passed for a push to this repo's main.
+    if: >-
+      github.event_name == 'pull_request' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install gitleaks (pinned release, checksum checked)
+        env:
+          GITLEAKS_VERSION: 8.30.1
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          cd "$RUNNER_TEMP"
+          curl -fsSLo gitleaks.tar.gz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf gitleaks.tar.gz gitleaks
+          ./gitleaks version
+      - name: Secret scan (every commit)
+        run: '"$RUNNER_TEMP/gitleaks" git --redact --verbose --exit-code 1 .'
+
+  deploy:
+    needs: secret-scan
+    if: github.event_name == 'workflow_run' && vars.GCP_PROJECT_ID != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: deploy-cloud-run
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - id: auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SA }}
+      - id: deploy
+        uses: google-github-actions/deploy-cloudrun@2028e2d7d30a78c6910e0632e48dd561b064884d # v3.0.1
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          region: ${{ vars.GCP_REGION }}
+          service: ${{ vars.CLOUD_RUN_SERVICE }}
+          source: ./
+          flags: >-
+            --service-account=${{ vars.GCP_RUNTIME_SA }}
+            --build-service-account=projects/${{ vars.GCP_PROJECT_ID }}/serviceAccounts/${{ vars.GCP_BUILD_SA }}
+      - name: Smoke test
+        env:
+          URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          code="$(curl -sS -o /dev/null -w '%{http_code}' "$URL/")"
+          echo "$URL -> HTTP $code"
+          test "$code" = 200
+          echo "### Deployed: $URL (HTTP $code)" >> "$GITHUB_STEP_SUMMARY"

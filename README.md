@@ -11,6 +11,16 @@ npm ci
 npm run verify:contract   # type check, unit tests, core check, test check, banned-word check
 ```
 
+## Delivery pipeline (speaker demo)
+
+On a push to `main`, [ci.yml](.github/workflows/ci.yml) runs the unit tests, the Firestore rules tests in the emulator,
+the core lock check and the test guard. When it is green, [pipeline.yml](.github/workflows/pipeline.yml) scans every
+commit for secrets with gitleaks and then deploys to Cloud Run with Workload Identity Federation (no JSON keys).
+
+The deploy job runs only when the repo variables `GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WIF_PROVIDER`, `GCP_DEPLOYER_SA`,
+`GCP_RUNTIME_SA`, `GCP_BUILD_SA` and `CLOUD_RUN_SERVICE` are set. A fork has none of them, so deploy is skipped and
+the run stays green.
+
 ## Make the lock enforceable
 
 `CORE.lock` catches accidental edits: `node scripts/check-core.mjs` fails when a locked file no longer matches its
