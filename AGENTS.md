@@ -4,6 +4,7 @@ Web app. Attendees see questions sorted by votes, sign in to ask, upvote once.
 
 ## Rules
 - `src/core/` is read-only. So is every file listed in `CORE.lock`.
+- `.github/` is read-only (CI and the delivery pipeline).
 - Never run `node scripts/check-core.mjs --write`. Never edit `CORE.lock`.
 - Write app code only in `src/ui/`.
 - Write tests only in `src/ui/**/*.test.ts`.
