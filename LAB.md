@@ -118,9 +118,8 @@ Start `agy` in the repo folder:
 agy
 ```
 
-Your safety is **Request Review** mode: every file change and command waits for you. Choose it
-in `agy` as the approval mode.
-<!-- verify in dry run: exact way to pick Request Review (flag or /settings) -->
+Your safety is **Request Review** mode: every file change and command waits for you. It is the
+default, so there is nothing to choose. Check it with `/permissions` inside `agy`.
 
 Do not use `--sandbox`: on Ubuntu with the default AppArmor settings it does nothing and auto mode
 refuses to run. Request Review is the protection.
@@ -135,6 +134,10 @@ The agent normally builds everything in one long turn, writes `src/ui/app.ts` an
 `/verify` itself. If it stops before building, say: `Gate 2 approved. Build it.`
 Conductor's per-phase manual checks may be skipped; that is fine, Gate 3 is where you check.
 
+Expect about 25-35 approval prompts in one build. Most are Conductor committing after each task
+(`git add`, `git commit`, `git notes`), plus file writes in `src/ui/`, `ls`, `find`, `npx vitest` and
+`npm run verify:contract`. These are normal: approve them. Refuse only the red flags below.
+
 While it works, review the changes. Look at the full diff at any time:
 
 ```
@@ -143,9 +146,9 @@ While it works, review the changes. Look at the full diff at any time:
 
 Watch for these red flags and refuse them:
 
-- an edit to `src/core/`, `CORE.lock`, `scripts/` or `.github/`
+- anything that touches `src/core/`, `CORE.lock`, `scripts/`, `.github/` or `package.json`
+  (including a new dependency)
 - an edit that deletes, skips or weakens a test
-- a new dependency in `package.json`
 
 ### 3.2 Check the lock
 
@@ -181,15 +184,18 @@ The build says "done". Now prove it. If the agent already ran `/verify` during t
 /verify
 ```
 
-The `verified` plugin runs the contract command, starts a fresh read-only checker, and (for the
-`[ui]` criteria) opens the app in a browser and takes screenshots. It writes `VERIFY.md`.
+The `verified` plugin runs the contract command and starts a fresh read-only checker. For the
+`[ui]` criteria the checker may open the app in a browser and take screenshots; if it does not,
+the evidence is a UI test, and you can check `npm run dev` yourself. It writes `VERIFY.md`.
 Expected: a table with one row per acceptance criterion, with evidence and a result.
 
 Read `VERIFY.md` yourself:
 
-- Every criterion has evidence you can see (a test name, a command exit code, a screenshot).
+- Every criterion has evidence you can see (a test name, a command exit code, maybe a screenshot).
 - **Untested criteria** says `none`. Anything listed there is a gap, not a pass.
-- **Tests modified** says `none`. If a test changed, open the diff and ask why.
+- **Tests modified** lists only the new tests in `src/ui/` (for example `src/ui/app.test.ts`).
+  That is expected. A test outside `src/ui/` (core or rules tests), or a deleted, skipped or
+  weakened test, is a red flag: open the diff and ask why.
 - **Core files touched** says `none`.
 
 **Gate 3 VERIFY.md accepted.** If it is honest and complete, tell the agent: `Accepted.` If not,
@@ -224,8 +230,8 @@ Deploy:
 gcloud run deploy vtv --source . --region asia-southeast1 --allow-unauthenticated
 ```
 
-Say yes if it offers to create an Artifact Registry repository. Expected: a build runs for about
-2 minutes, then it prints `Service URL: https://vtv-....run.app`. Open it.
+Say yes if it offers to create an Artifact Registry repository. Expected: the first deploy on a
+fresh project takes 2-4 minutes (the build plus creating the repository), then it prints `Service URL: https://vtv-....run.app`. Open it.
 
 Without Firebase settings the deployed app uses an in-memory store and a demo user. That is fine
 for the lab: you see your own working app on a public URL. To connect a real Firestore later, see
@@ -275,6 +281,7 @@ Or stay in the terminal: `git switch step-3-build`, then continue from section 4
 | Problem | Try |
 |---|---|
 | `agy: command not found` | New terminal; add `~/.local/bin` to `PATH` |
+| `npm ci` fails | `node -v` must be an LTS: 22 (22.12+), 24 or 26. Not 23 or 25 |
 | Sign-in loop | Use the personal `@gmail.com`; try a private window |
 | `gcloud` asks you to sign in | `gcloud auth login` with the same `@gmail.com` |
 | `git switch step-1-spec` says invalid reference | `git fetch origin` first |
