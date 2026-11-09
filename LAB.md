@@ -7,9 +7,11 @@ You use: Google Antigravity CLI (`agy`) with the free Gemini 3.8 Flash, Google's
 (spec, plan, build) and our `verified` plugin (verify step, `VERIFY.md`). The core of the app
 (`src/core/`) is locked, so the agent can only write the edges (the UI in `src/ui/`).
 
-**Setup is done before the day** (the pre-event email: `agy` installed and signed in, the starter
-cloned with `npm ci`, Google Cloud CLI installed and signed in with `gcloud auth login`).
-This guide starts from there.
+**You work in Google Cloud Shell**: a Linux terminal in your browser, with Node, git and the Google
+Cloud CLI already installed. Nothing to install on your laptop. Setup takes about 5 minutes in the
+room (section 0). Cannot use Cloud Shell (under 18, Google does not know your age, or only a work
+account)? Use [Appendix A: install on your own laptop](#appendix-a-install-on-your-own-laptop) or
+the [fallback box](#fallback-box-no-terminal-works-for-you).
 
 Three human gates. The agent stops at each one and waits for you:
 
@@ -22,6 +24,7 @@ pass Gates 1 and 2 yourself, then the agent builds.
 
 | Min | Stage | Section | Jump point if stuck |
 |---|---|---|---|
+| before 0 | Set up Cloud Shell: `agy`, sign in, clone the starter | 0 | none |
 | 0-5 | Open, claim the cloud credit, set the project, enable the services | 1 | none |
 | 5-10 | Start at `step-1-spec`: read spec and plan, approve | 2 | `step-1-spec` |
 | 10-30 | Build: the agent writes the edges on the locked core | 3 | `step-3-build` |
@@ -44,6 +47,62 @@ pass Gates 1 and 2 yourself, then the agent builds.
 
 ---
 
+## 0. Set up Cloud Shell (before minute 0, about 5 minutes)
+
+### 0.1 Open Cloud Shell
+
+Open https://shell.cloud.google.com and sign in with your personal `@gmail.com` (you must be 18 or
+older). The first time you use it:
+
+- accept the Google Cloud terms of service, and
+- click **Authorize** when the "Authorize Cloud Shell" dialog asks (it appears the first time a
+  command needs your account).
+
+Leave **ephemeral mode off** (that is the default): ephemeral mode throws your files away.
+The first start of the day can take 2-3 minutes; after that it opens in seconds.
+
+### 0.2 Install `agy`
+
+Cloud Shell already has an older `agy` in `/usr/bin`. Install the current one with the official
+installer, then reload your shell so the new one comes first:
+
+```sh
+curl -fsSL https://antigravity.google/cli/install.sh | bash
+source ~/.bashrc
+agy --version
+```
+
+Expected: version 1.5 or newer. Still 1.4? You are running the old one: run `source ~/.bashrc` again.
+
+### 0.3 Sign in
+
+```sh
+agy
+```
+
+1. "Select login method": choose **1. Google OAuth**. Never choose option 2 ("Use a Google Cloud
+   project"): it bills that project.
+2. Click **Click here to authenticate**, choose your `@gmail.com`, then **Sign in**.
+3. The page shows a code. Click **Copy to Clipboard**, go back to Cloud Shell, paste it
+   (Ctrl+V, or Cmd+V on a Mac) and press Enter.
+4. Pick a colour scheme. On **Terms of Service & Data Use**, the box that lets Google collect and use
+   your Interactions data is ticked by default. You may untick it (Enter on the box), then choose
+   **Done**.
+5. Look at the model name at the bottom of the screen. If it is not Gemini 3.8 Flash (some paid
+   plans start on a larger model), type `/model` and choose **Gemini 3.8 Flash**.
+6. Leave with `/exit`.
+
+### 0.4 Get the starter
+
+```sh
+git clone --branch step-1-spec https://github.com/opsta/vibe-to-verified-starter
+```
+
+You continue in this folder in section 2. Cloud Shell keeps your home folder, so if the tab
+disconnects, open it again and run `cd vibe-to-verified-starter`.
+
+---
+
 ## 1. Open and claim the credit (minutes 0-5)
 
 Open the claim link shown on the screen (QR code on the slide), sign in with your personal
@@ -54,22 +113,27 @@ If the claim fails, do not worry: use the fallback box at the end for the deploy
 Then, still in minutes 2-4, point the Google Cloud CLI at that project and enable the services now.
 Why now: the APIs need about a minute before the first deploy works, so by section 5 they are ready.
 
+In Cloud Shell, `gcloud config set project` does not last: every new tab or reconnect starts a fresh
+gcloud configuration. So put the project in `~/.bashrc` instead, where every tab picks it up:
+
 ```sh
 gcloud projects list
-gcloud config set project <YOUR_EVENT_CREDIT_PROJECT>
+echo 'export CLOUDSDK_CORE_PROJECT=<YOUR_EVENT_CREDIT_PROJECT>' >> ~/.bashrc
+source ~/.bashrc
 gcloud config get-value project
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
 ```
 
 Expected: `gcloud config get-value project` prints your event credit project. Use the project made for
-this lab, not a work project. If `services enable` says billing is not enabled, the credit is still
-activating: wait a minute and run it again.
+this lab, not a work project. If Cloud Shell asks you to authorize, click **Authorize**. If
+`services enable` says billing is not enabled, the credit is still activating: wait a minute and run
+it again.
 
 ---
 
 ## 2. Start at the spec and plan: Gates 1 and 2 (minutes 5-10)
 
-Go to the starter you cloned before the day and switch to the start branch.
+Go to the starter you cloned in section 0 and make sure you are on the start branch.
 No clone yet? Run `git clone --branch step-1-spec https://github.com/opsta/vibe-to-verified-starter` first.
 
 ```sh
@@ -80,16 +144,16 @@ npm ci
 npm run verify:contract
 ```
 
-Expected: the last command exits with code 0 (check with `echo $?` on macOS/Linux, `echo $LASTEXITCODE`
-in PowerShell).
+Expected: the last command exits with code 0 (check with `echo $?`).
 
-Check the plugins (the email had them as optional):
+Check the plugins:
 
 ```sh
 agy plugin list
 ```
 
-Expected: both `conductor` and `verified` appear. If one is missing, install it now:
+Expected: both `conductor` and `verified` appear. Cloud Shell also lists two Google plugins that come
+with it; that is fine. If `conductor` or `verified` is missing, install it now:
 
 ```sh
 agy plugin install https://github.com/gemini-cli-extensions/conductor
@@ -98,7 +162,8 @@ agy plugin install https://github.com/opsta/antigravity-verified
 
 ### 2.1 Read the spec (Gate 1)
 
-Open `docs/brief.md`, then `conductor/tracks/qa_board_20261028/spec.md`. Check:
+Open `docs/brief.md`, then `conductor/tracks/qa_board_20261028/spec.md` (in Cloud Shell:
+`cloudshell edit docs/brief.md`, or the **Open Editor** button). Check:
 
 - Are all four acceptance criteria from the brief there, word for word, with the `[ui]` tags?
 - Does it say the core is read-only?
@@ -122,10 +187,11 @@ Open `conductor/tracks/qa_board_20261028/plan.md`. Check:
 ---
 
 ## 3. Build (minutes 10-30)
+<!-- build timing: pending re-measure -->
 
 ### 3.1 Run the build safely
 
-Start `agy` in the repo folder:
+Start `agy` in the repo folder (the first time in a folder it asks whether you trust it: yes):
 
 ```sh
 agy
@@ -146,10 +212,22 @@ Gate 1 and Gate 2 approved: spec and plan in conductor/tracks/qa_board_20261028/
 The agent normally builds everything in one long turn, writes `src/ui/app.ts` and tests, and may run
 `/verify` itself. If it stops before building, say: `Gate 2 approved. Build it.`
 Conductor's per-phase manual checks may be skipped; that is fine, Gate 3 is where you check.
+The agent can be quiet for a minute or two after a commit while it thinks: that is normal.
 
-Expect about 25-35 approval prompts in one build. Most are Conductor committing after each task
-(`git add`, `git commit`, `git notes`), plus file writes in `src/ui/`, `ls`, `find`, `npx vitest` and
-`npm run verify:contract`. These are normal: approve them. Refuse only the red flags below.
+**How to answer the approval prompts.** Approving every prompt one by one means about 60 prompts,
+too many for 20 minutes. Do this instead:
+
+- **Commands**: the first time each of these asks, choose **Yes, and always allow in this
+  conversation** <!-- exact option text: confirm -->: `git` (Conductor runs `git add`, `git commit`,
+  `git notes`, `git log`, `git status` and `git diff` after each task), `npm run verify:contract`,
+  `npx vitest`, `npx tsc`, `ls`, `cat`, `find`, `grep`. They only check, read or record your work.
+- **File edits**: approve them one by one, and read each one. This is where you catch a red flag.
+
+If you choose **No**, the agent stops the whole turn and asks what to do instead. Type it, for example:
+`Keep the existing tests, add new ones, continue.`
+
+A small fix in `src/ui/app.test.ts` after a type error (for example `items[0]` becoming `items[0]?`)
+is normal: the test still checks the same thing. Deleting or replacing a test is not.
 
 While it works, review the changes. Look at the full diff at any time:
 
@@ -165,10 +243,13 @@ Watch for these red flags and refuse them:
 
 ### 3.2 Check the lock
 
-After the build, in your own terminal (not through the agent):
+After the build, open a second Cloud Shell tab (the **+** button) so `agy` keeps running in the
+first one. In that second tab (your own terminal, not the agent):
 
 ```sh
+cd vibe-to-verified-starter
 npm run verify:contract
+echo $?
 ```
 
 Expected: exit code 0. The core is locked: the store rules and their tests are untouched, so
@@ -179,10 +260,12 @@ If it fails, paste the last 20 lines to the agent and ask it to fix `src/ui/` on
 See it run:
 
 ```sh
-npm run dev
+npm run dev -- --port 8080
 ```
 
-Open the address it prints. You should see the list, an ask box and vote buttons.
+Then click **Web Preview** (top right of Cloud Shell) > **Preview on port 8080**. You should see the
+list, an ask box and vote buttons. The preview address works only for you; to show your app to
+someone else, use your Cloud Run URL from section 5. Stop the server with Ctrl+C when you are done.
 
 > **Stuck or out of quota at minute 30?** `git switch step-3-build` gives you a finished build.
 
@@ -198,8 +281,9 @@ The build says "done". Now prove it. If the agent already ran `/verify` during t
 ```
 
 The `verified` plugin runs the contract command and starts a fresh read-only checker. For the
-`[ui]` criteria the checker may open the app in a browser and take screenshots; if it does not,
-the evidence is a UI test, and you can check `npm run dev` yourself. It writes `VERIFY.md`.
+`[ui]` criteria the checker may open the app in a browser and take screenshots; Cloud Shell has no
+browser for it, so expect a UI test as the evidence and check the app yourself in Web Preview.
+It writes `VERIFY.md`. The checker can be quiet for a few minutes while it works.
 Expected: a table with one row per acceptance criterion, with evidence and a result.
 
 Read `VERIFY.md` yourself:
@@ -227,6 +311,8 @@ now, then wait 1 minute before you deploy. Check that the CLI still points at yo
 gcloud config get-value project
 ```
 
+Empty or wrong? Run `source ~/.bashrc` (or the section 1 commands again).
+
 Deploy:
 
 ```sh
@@ -242,8 +328,8 @@ for the lab: you see your own working app on a public URL. To connect a real Fir
 
 > **Stuck?** `git switch step-5-deployed` is the final state; deploy it with the same command.
 > Cloud Run errors: `PERMISSION_DENIED` on Artifact Registry right after enabling? Wait 1 minute and
-> deploy again. Otherwise read the last lines of the build log first; the usual cause is billing not
-> linked to the project yet (the credit takes a few minutes).
+> run the same deploy again (it may take two tries). Otherwise read the last lines of the build log
+> first; the usual cause is billing not linked to the project yet (the credit takes a few minutes).
 
 ---
 
@@ -266,32 +352,65 @@ Keep your repo: `VERIFY.md` is the habit to take home. More: https://g.dev/ai/bu
 
 ---
 
-## Fallback box (no install, no quota, no Google account that works)
+## Fallback box (no terminal works for you)
 
-If you cannot use `agy` (age, work account, install failure) or your free quota ran out:
+If you cannot use Cloud Shell or `agy` (under 18, Google does not know your age, work account, sign-in
+fails) and have no laptop set up (Appendix A), or your free quota ran out:
 
-1. Open AI Studio Build in your browser: https://aistudio.google.com/apps (sign in with any
-   account AI Studio accepts).
-2. Paste the contents of `docs/brief.md` as your prompt and ask for the app.
-3. Use its Firebase option when it offers one, and publish from the same screen (Cloud Run
-   Starter Tier, no billing needed, up to 2 services).
-4. For Gate 3, open the app yourself and check the four criteria one by one. Write what you saw.
-<!-- verify in dry run: current AI Studio Build menu names -->
+1. Open https://aistudio.google.com/apps (Build > New app). Sign in with any account AI Studio accepts.
+2. Paste the contents of `docs/brief.md` into "Describe an app" and send it. Keep "Default mode".
+   It takes about 5 minutes.
+3. For Gate 3, check the four criteria one by one in the Preview pane. Write what you saw.
+   The app keeps its data in your browser; that is fine for the lab.
+4. Publishing is optional: Publish > Get started asks for a Google Cloud project with billing.
+   Only do it if you claimed the event credit; otherwise stop at the Preview.
 
 Or stay in the terminal: `git switch step-3-build`, then continue from section 4.
+
+---
+
+## Appendix A: install on your own laptop
+
+Use this only if Cloud Shell does not work for you. It needs a personal `@gmail.com` (18 or older,
+work and school accounts do not work with Google Antigravity) and a laptop you can install software on.
+Do it before the lab if you can: it takes about 20 minutes.
+
+1. Install **git**, **Node.js LTS 22 (22.12+), 24 or 26** (not 23 or 25) and **Python 3**.
+2. Install `agy`:
+   - macOS or Linux: `curl -fsSL https://antigravity.google/cli/install.sh | bash`
+   - macOS with Homebrew: `brew install --cask antigravity-cli`
+   - Windows (PowerShell): `irm https://antigravity.google/cli/install.ps1 | iex`
+
+   Check with `agy --version`. Not found? Open a new terminal; on macOS/Linux add `~/.local/bin` to `PATH`.
+3. Run `agy` and sign in with your personal `@gmail.com` in the browser (same screens as section 0.3).
+4. Install the Google Cloud CLI (https://cloud.google.com/sdk/docs/install) and run
+   `gcloud auth login` with the same `@gmail.com`.
+5. Clone the starter as in section 0.4, then follow sections 1 to 5 with these differences:
+   - Section 1: on a laptop the gcloud setting lasts, so run
+     `gcloud config set project <YOUR_EVENT_CREDIT_PROJECT>` instead of the two `~/.bashrc` lines.
+   - Exit codes: `echo $?` on macOS/Linux, `echo $LASTEXITCODE` in PowerShell.
+   - Section 3.2: run `npm run dev` and open the address it prints (no Web Preview).
+   - Windows: line-ending noise is safe, the lock check ignores CRLF.
 
 ## Troubleshooting
 
 | Problem | Try |
 |---|---|
-| `agy: command not found` | New terminal; add `~/.local/bin` to `PATH` |
+| Cloud Shell says you cannot use it (age) | Under 18 or Google does not know your age: use Appendix A or the fallback box |
+| Cloud Shell first start is slow | The first start of the day takes 2-3 minutes; wait |
+| `agy --version` prints 1.4 | Cloud Shell's old `agy` comes first: `source ~/.bashrc` |
+| `agy: command not found` | Cloud Shell: `source ~/.bashrc`. Laptop: new terminal; add `~/.local/bin` to `PATH` |
+| Sign-in code does not paste | Click in the terminal, then Ctrl+V (Cmd+V on a Mac); allow clipboard access if the browser asks |
+| Sign-in loop | Use the personal `@gmail.com`; option 1, Google OAuth; try a private window |
+| `gcloud config get-value project` empty in a new tab | `source ~/.bashrc`; if still empty, redo the section 1 commands |
 | `npm ci` fails | `node -v` must be an LTS: 22 (22.12+), 24 or 26. Not 23 or 25 |
-| Sign-in loop | Use the personal `@gmail.com`; try a private window |
-| `gcloud` asks you to sign in | `gcloud auth login` with the same `@gmail.com` |
-| `PERMISSION_DENIED` on `artifactregistry.repositories.get` right after enabling the services | The services are still switching on: wait 1 minute and run `gcloud run deploy` again |
+| `gcloud` asks you to sign in | Cloud Shell: click Authorize. Laptop: `gcloud auth login` with the same `@gmail.com` |
+| Web Preview shows nothing | The dev server must run with `--port 8080`, and Web Preview must use port 8080 |
+| `PERMISSION_DENIED` on `artifactregistry.repositories.get` right after enabling the services | The services are still switching on: wait 1 minute and run `gcloud run deploy` again (it may take two tries) |
 | `git switch step-1-spec` says invalid reference | `git fetch origin` first |
 | `core lock` / `check:core` fails | You or the agent changed a locked file: `git checkout -- src/core CORE.lock` |
-| Windows: line-ending noise | Safe: the lock check ignores CRLF |
+| You pressed No and the agent stopped | Normal: type what to do instead, then `continue` |
 | Agent edits a test to pass | Refuse it. Say: "Do not change tests. Fix `src/ui/`." |
 | Agent wants a new package | Refuse it. The rules say no new dependencies |
+| Cloud Shell tab disconnected | Open it again, `cd vibe-to-verified-starter`; your files and the project line are kept |
 | Quota exhausted | `git switch` to the next checkpoint |
