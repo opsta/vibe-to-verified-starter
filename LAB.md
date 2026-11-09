@@ -40,14 +40,13 @@ pass Gates 1 and 2 yourself, then the agent builds.
 ## Before the event (organiser fills in)
 
 - [x] GitHub org: `opsta` (repos `opsta/antigravity-verified` and `opsta/vibe-to-verified-starter`)
-- [ ] `<event-id>`: GDG event credit id for the claim link (section 1)
 - [ ] `<YOUR_EVENT_CREDIT_PROJECT>`: shown to attendees by the claim flow (section 1)
 
 ---
 
 ## 1. Open and claim the credit (minutes 0-5)
 
-Open the claim link on the board (`trygcp.dev/claim/<event-id>`) <!-- verify in dry run -->, sign in with your personal
+Open the claim link shown on the screen (QR code on the slide), sign in with your personal
 `@gmail.com`, and accept. No card is needed. The credit takes a few minutes to activate and lasts
 about 12 hours, so your published app stops the day after. Write down the project it gives you.
 If the claim fails, do not worry: use the fallback box at the end for the deploy.
