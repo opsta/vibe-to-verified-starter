@@ -188,7 +188,7 @@ Open `conductor/tracks/qa_board_20261028/plan.md`. Check:
 ## 3. Build (minutes 10-40, together with section 4)
 
 Build and verify are one stage of 30 minutes: the agent builds, then runs `/verify` itself, and you
-pass Gate 3 inside the same window. In our test run the build took about 16 minutes from the paste
+pass Gate 3 inside the same window. In our test runs the build took 6 to 16 minutes from the paste
 below to `VERIFY.md`; the rest of the window is buffer for reading prompts and for slower runs.
 
 ### 3.1 Run the build safely
@@ -216,7 +216,7 @@ The agent normally builds everything in one long turn, writes `src/ui/app.ts` an
 Conductor's per-phase manual checks may be skipped; that is fine, Gate 3 is where you check.
 The agent can be quiet for a minute or two after a commit while it thinks: that is normal.
 
-**How to answer the approval prompts.** Expect about 25 prompts in the whole build: about two thirds
+**How to answer the approval prompts.** Expect 12 to 35 prompts in the whole build: about two thirds
 are commands, the rest are file changes. Answer them like this:
 
 - **Commands**: the first time each of these asks, choose option 2,
@@ -290,16 +290,19 @@ The build says "done". Now prove it. If the agent already ran `/verify` during t
 /verify
 ```
 
-The `verified` plugin runs the contract command and starts a fresh read-only checker. For the
-`[ui]` criteria the checker may open the app in a browser and take screenshots; Cloud Shell has no
-browser for it, so expect a UI test as the evidence and check the app yourself in Web Preview.
-It writes `VERIFY.md`. **The screen may stay quiet for up to about 7 minutes while the verifier
-works.** That is normal: wait, do not cancel.
+The `verified` plugin runs the contract, the tests, `git diff --stat` and `git status` itself
+(answer with option 2 as before), then hands their output to a fresh read-only checker that only
+reads files. The browser check runs only if you give the agent an app URL; in Cloud Shell expect a
+UI test as the evidence and check the app yourself in Web Preview. It writes `VERIFY.md`.
+**The screen may stay quiet for about a minute while the checker works.** That is normal: wait,
+do not cancel.
 Expected: a table with one row per acceptance criterion, with evidence and a result.
 
 Read `VERIFY.md` yourself:
 
-- Every criterion has evidence you can see (a test name, a command exit code, maybe a screenshot).
+- Every criterion has evidence you can see (a test name, a command exit code, the test output).
+- A row marked `not evidenced: <why>` is a gap, not a pass: ask the agent to add a test for it,
+  then run `/verify` again.
 - **Untested criteria** says `none`. Anything listed there is a gap, not a pass.
 - **Tests modified** lists only the new tests in `src/ui/` (for example `src/ui/app.test.ts`).
   That is expected. A test outside `src/ui/` (core or rules tests), or a deleted, skipped or
