@@ -27,8 +27,7 @@ pass Gates 1 and 2 yourself, then the agent builds.
 | before 0 | Set up Cloud Shell: `agy`, sign in, clone the starter | 0 | none |
 | 0-5 | Open, claim the cloud credit, set the project, enable the services | 1 | none |
 | 5-10 | Start at `step-1-spec`: read spec and plan, approve | 2 | `step-1-spec` |
-| 10-30 | Build: the agent writes the edges on the locked core | 3 | `step-3-build` |
-| 30-40 | Verify: `VERIFY.md`, accept | 4 | `step-4-verified` |
+| 10-40 | Build and verify: the agent writes the edges on the locked core, runs `/verify`, you accept `VERIFY.md` | 3-4 | `step-3-build`, `step-4-verified` |
 | 40-50 | Publish: `gcloud run deploy`, open your own URL | 5 | `step-5-deployed` |
 | 50-58 | Speaker demo: push, pipeline, deploy | 6 | none |
 | 58-60 | Wrap | 6 | none |
@@ -186,8 +185,11 @@ Open `conductor/tracks/qa_board_20261028/plan.md`. Check:
 
 ---
 
-## 3. Build (minutes 10-30)
-<!-- build timing: pending re-measure -->
+## 3. Build (minutes 10-40, together with section 4)
+
+Build and verify are one stage of 30 minutes: the agent builds, then runs `/verify` itself, and you
+pass Gate 3 inside the same window. In our test run the build took about 16 minutes from the paste
+below to `VERIFY.md`; the rest of the window is buffer for reading prompts and for slower runs.
 
 ### 3.1 Run the build safely
 
@@ -214,14 +216,21 @@ The agent normally builds everything in one long turn, writes `src/ui/app.ts` an
 Conductor's per-phase manual checks may be skipped; that is fine, Gate 3 is where you check.
 The agent can be quiet for a minute or two after a commit while it thinks: that is normal.
 
-**How to answer the approval prompts.** Approving every prompt one by one means about 60 prompts,
-too many for 20 minutes. Do this instead:
+**How to answer the approval prompts.** Expect about 25 prompts in the whole build: about two thirds
+are commands, the rest are file changes. Answer them like this:
 
-- **Commands**: the first time each of these asks, choose **Yes, and always allow in this
-  conversation** <!-- exact option text: confirm -->: `git` (Conductor runs `git add`, `git commit`,
-  `git notes`, `git log`, `git status` and `git diff` after each task), `npm run verify:contract`,
-  `npx vitest`, `npx tsc`, `ls`, `cat`, `find`, `grep`. They only check, read or record your work.
-- **File edits**: approve them one by one, and read each one. This is where you catch a red flag.
+- **Commands**: the first time each of these asks, choose option 2,
+  **`2. Yes, and always allow in this conversation for commands that start with '<prefix>'`**:
+  `git` commands (Conductor runs `git add`, `git commit`, `git notes`, `git log`, `git status` and
+  `git diff`), `npm run verify:contract`, `npm test`, `npx vitest`, `npx tsc`, `ls`, `cat`, `grep`.
+  They only check, read or record your work. For any other command, choose `1. Yes, run command`.
+- **Never choose option 3** (`... (Persist to settings.json)`): it keeps the allowance after the lab,
+  for every project.
+- The allowance is per git subcommand: `git add` and `git commit` each ask once. Commands joined
+  with `&&` ask again for each part. An allowed command may ask once more after the checker
+  returns. Each time, choose option 2 again.
+- **File edits**: there is no "always" option. Approve them one by one (`1. Yes, accept this change`
+  or `1. Yes, allow creation`), and read each one. This is where you catch a red flag.
 
 If you choose **No**, the agent stops the whole turn and asks what to do instead. Type it, for example:
 `Keep the existing tests, add new ones, continue.`
@@ -267,11 +276,12 @@ Then click **Web Preview** (top right of Cloud Shell) > **Preview on port 8080**
 list, an ask box and vote buttons. The preview address works only for you; to show your app to
 someone else, use your Cloud Run URL from section 5. Stop the server with Ctrl+C when you are done.
 
-> **Stuck or out of quota at minute 30?** `git switch step-3-build` gives you a finished build.
+> **Stuck or out of quota at minute 30 with no build yet?** `git switch step-3-build` gives you a
+> finished build: start `agy` there and run `/verify` (section 4).
 
 ---
 
-## 4. Verify: Gate 3 (minutes 30-40)
+## 4. Verify: Gate 3 (still minutes 10-40)
 
 The build says "done". Now prove it. If the agent already ran `/verify` during the build, read its
 `VERIFY.md` below; otherwise run, inside `agy`:
@@ -283,7 +293,8 @@ The build says "done". Now prove it. If the agent already ran `/verify` during t
 The `verified` plugin runs the contract command and starts a fresh read-only checker. For the
 `[ui]` criteria the checker may open the app in a browser and take screenshots; Cloud Shell has no
 browser for it, so expect a UI test as the evidence and check the app yourself in Web Preview.
-It writes `VERIFY.md`. The checker can be quiet for a few minutes while it works.
+It writes `VERIFY.md`. **The screen may stay quiet for up to about 7 minutes while the verifier
+works.** That is normal: wait, do not cancel.
 Expected: a table with one row per acceptance criterion, with evidence and a result.
 
 Read `VERIFY.md` yourself:
@@ -298,7 +309,7 @@ Read `VERIFY.md` yourself:
 **Gate 3 VERIFY.md accepted.** If it is honest and complete, tell the agent: `Accepted.` If not,
 say what is missing and run `/verify` again. Only a person can pass this gate.
 
-> **Stuck?** `git switch step-4-verified` has a verified build with its `VERIFY.md`.
+> **Stuck at minute 40?** `git switch step-4-verified` has a verified build with its `VERIFY.md`.
 
 ---
 
