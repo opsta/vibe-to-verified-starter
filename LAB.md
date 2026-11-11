@@ -1,6 +1,6 @@
 # From Vibe to Verified: lab guide
 
-DevFest Bangkok, Sat 14 Nov 2026. 60 minutes. You build a small Q&A board with an AI agent,
+DevFest Bangkok, Sun 15 Nov 2026. 60 minutes. You build a small Q&A board with an AI agent,
 prove it works, and publish it on Cloud Run.
 
 You use: Google Antigravity CLI (`agy`) with the free Gemini 3.8 Flash, Google's Conductor plugin
