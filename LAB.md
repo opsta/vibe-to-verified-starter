@@ -25,7 +25,7 @@ pass Gates 1 and 2 yourself, then the agent builds.
 | Min | Stage | Section | Jump point if stuck |
 |---|---|---|---|
 | before 0 | Set up Cloud Shell: `agy`, sign in, clone the starter | 0 | none |
-| 0-5 | Open, claim the cloud credit, set the project, enable the services | 1 | none |
+| 0-5 | Claim the cloud credit, make and link your project, enable the services (may use the start buffer) | 1 | none |
 | 5-10 | Start at `step-1-spec`: read spec and plan, approve | 2 | `step-1-spec` |
 | 10-40 | Build and verify: the agent writes the edges on the locked core, runs `/verify`, you accept `VERIFY.md` | 3-4 | `step-3-build`, `step-4-verified` |
 | 40-50 | Publish: `gcloud run deploy`, open your own URL | 5 | `step-5-deployed` |
@@ -42,7 +42,7 @@ pass Gates 1 and 2 yourself, then the agent builds.
 ## Before the event (organiser fills in)
 
 - [x] GitHub org: `opsta` (repos `opsta/antigravity-verified` and `opsta/vibe-to-verified-starter`)
-- [ ] `<YOUR_EVENT_CREDIT_PROJECT>`: shown to attendees by the claim flow (section 1)
+- [ ] Claim link and QR code on the screen (section 1); attendees make their own project and link it to the credit
 
 ---
 
@@ -102,31 +102,53 @@ disconnects, open it again and run `cd vibe-to-verified-starter`.
 
 ---
 
-## 1. Open and claim the credit (minutes 0-5)
+## 1. Claim the credit and make your project (minutes 0-5)
 
-Open the claim link shown on the screen (QR code on the slide), sign in with your personal
-`@gmail.com`, and accept. No card is needed. The credit takes a few minutes to activate and lasts
-about 12 hours, so your published app stops the day after. Write down the project it gives you.
+This step may use the start buffer before minute 0. You need a smartphone for one check.
+
+1. Open the claim link shown on the screen (or scan the QR code on the slide) on your laptop.
+2. Sign in with your personal `@gmail.com` (the same account as your Chrome profile).
+3. A Google Developer Program profile is required. If you are asked, click **Create profile** and
+   finish it.
+4. Scan the QR code the page shows with your smartphone to prove you are human.
+5. Click **Claim Credit**. No card is needed.
+6. Wait 3-5 minutes. Then click **Open Billing Account**. The credit is a new billing account named
+   like `[date] GDP Credit: XXXX-...`. It is not a project: you make the project yourself below.
+
+The credit lasts about 12 hours, so your published app stops the day after.
 If the claim fails, do not worry: use the fallback box at the end for the deploy.
 
-Then, still in minutes 2-4, point the Google Cloud CLI at that project and enable the services now.
-Why now: the APIs need about a minute before the first deploy works, so by section 5 they are ready.
+Then, still in minutes 2-5, in Cloud Shell: make a project, link it to the credit, point the Google
+Cloud CLI at it and enable the services now. Why now: the APIs need about a minute before the first
+deploy works, so by section 5 they are ready.
 
 In Cloud Shell, `gcloud config set project` does not last: every new tab or reconnect starts a fresh
-gcloud configuration. So put the project in `~/.bashrc` instead, where every tab picks it up:
+gcloud configuration. So put the project in `~/.bashrc` instead, where every tab picks it up.
 
 ```sh
-gcloud projects list
-echo 'export CLOUDSDK_CORE_PROJECT=<YOUR_EVENT_CREDIT_PROJECT>' >> ~/.bashrc
+gcloud billing accounts list
+BILLING_ACCOUNT=$(gcloud billing accounts list --filter="open=true AND displayName~GDP" \
+  --format="value(name.basename())" | head -n 1)
+echo "$BILLING_ACCOUNT"
+PROJECT_ID="vtv-$(date +%s)-$RANDOM"
+gcloud projects create "$PROJECT_ID"
+gcloud billing projects link "$PROJECT_ID" --billing-account="$BILLING_ACCOUNT"
+echo "export CLOUDSDK_CORE_PROJECT=$PROJECT_ID" >> ~/.bashrc
 source ~/.bashrc
 gcloud config get-value project
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
 ```
 
-Expected: `gcloud config get-value project` prints your event credit project. Use the project made for
-this lab, not a work project. If Cloud Shell asks you to authorize, click **Authorize**. If
-`services enable` says billing is not enabled, the credit is still activating: wait a minute and run
-it again.
+Expected: `gcloud billing accounts list` shows an open account named `GDP Credit...`, `echo` prints
+its ID (like `01ABCD-23EFGH-45IJKL`), and `gcloud config get-value project` prints your new `vtv-...`
+project. Project IDs are global, so the date and a random number keep yours unique. If Cloud Shell
+asks you to authorize, click **Authorize**.
+
+- `echo "$BILLING_ACCOUNT"` prints nothing: the credit is not visible yet. Wait 1-2 minutes and run
+  the two `BILLING_ACCOUNT=` lines again. Still empty after 5 minutes? Check the claim page said it
+  succeeded, and that Cloud Shell uses the same `@gmail.com`.
+- `services enable` says billing is not enabled: the link has not landed yet. Wait a minute and run
+  it again.
 
 ---
 
@@ -319,7 +341,7 @@ say what is missing and run `/verify` again. Only a person can pass this gate.
 ## 5. Publish (minutes 40-50)
 
 You set the project and enabled the services in section 1. Skipped that? Run the section 1 commands
-now, then wait 1 minute before you deploy. Check that the CLI still points at your event credit project:
+now, then wait 1 minute before you deploy. Check that the CLI still points at your `vtv-...` project:
 
 ```sh
 gcloud config get-value project
@@ -343,7 +365,7 @@ for the lab: you see your own working app on a public URL. To connect a real Fir
 > **Stuck?** `git switch step-5-deployed` is the final state; deploy it with the same command.
 > Cloud Run errors: `PERMISSION_DENIED` on Artifact Registry right after enabling? Wait 1 minute and
 > run the same deploy again (it may take two tries). Otherwise read the last lines of the build log
-> first; the usual cause is billing not linked to the project yet (the credit takes a few minutes).
+> first; the usual cause is billing not linked to the project yet: run `gcloud billing projects link` from section 1 again.
 
 ---
 
@@ -401,7 +423,7 @@ Do it before the lab if you can: it takes about 20 minutes.
    `gcloud auth login` with the same `@gmail.com`.
 5. Clone the starter as in section 0.4, then follow sections 1 to 5 with these differences:
    - Section 1: on a laptop the gcloud setting lasts, so run
-     `gcloud config set project <YOUR_EVENT_CREDIT_PROJECT>` instead of the two `~/.bashrc` lines.
+     `gcloud config set project "$PROJECT_ID"` instead of the `echo ... >> ~/.bashrc` and `source` lines.
    - Exit codes: `echo $?` on macOS/Linux, `echo $LASTEXITCODE` in PowerShell.
    - Section 3.2: run `npm run dev` and open the address it prints (no Web Preview).
    - Windows: line-ending noise is safe, the lock check ignores CRLF.
@@ -416,6 +438,13 @@ Do it before the lab if you can: it takes about 20 minutes.
 | `agy: command not found` | Cloud Shell: `source ~/.bashrc`. Laptop: new terminal; add `~/.local/bin` to `PATH` |
 | Sign-in code does not paste | Click in the terminal, then Ctrl+V (Cmd+V on a Mac); allow clipboard access if the browser asks |
 | Sign-in loop | Use the personal `@gmail.com`; option 1, Google OAuth; try a private window |
+| Claim page asks for a profile | A Google Developer Program profile is required: click **Create profile**, finish it, then claim |
+| No smartphone for the human check | Borrow a neighbour's phone to scan the QR code, or ask a helper; otherwise use the fallback box |
+| Credit not visible right after claiming | Normal: it takes 3-5 minutes. Then look for the billing account named `GDP Credit...` |
+| `gcloud billing accounts list` is empty | Wait 3-5 minutes after claiming; check Cloud Shell uses the same `@gmail.com` as the claim |
+| `gcloud projects create` fails | ID taken or invalid: run the `PROJECT_ID=` line again, then create again. Too many projects: reuse one of yours |
+| Two or more `GDP Credit` accounts in the list | Use the one with today's date: `BILLING_ACCOUNT=<ACCOUNT_ID>` with its ID, then link again |
+| `gcloud billing projects link` fails | `$BILLING_ACCOUNT` empty (wait, rerun that line) or the account is closed; use the open `GDP Credit` one |
 | `gcloud config get-value project` empty in a new tab | `source ~/.bashrc`; if still empty, redo the section 1 commands |
 | `npm ci` fails | `node -v` must be an LTS: 22 (22.12+), 24 or 26. Not 23 or 25 |
 | `gcloud` asks you to sign in | Cloud Shell: click Authorize. Laptop: `gcloud auth login` with the same `@gmail.com` |
