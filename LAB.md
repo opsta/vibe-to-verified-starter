@@ -127,7 +127,7 @@ gcloud configuration. So put the project in `~/.bashrc` instead, where every tab
 
 ```sh
 gcloud billing accounts list
-BILLING_ACCOUNT=$(gcloud billing accounts list --filter="open=true AND displayName~'GDP Credit'" --format='value(name.basename())' | head -n 1)
+BILLING_ACCOUNT=$(gcloud billing accounts list --filter="open=true AND displayName~GDP" --format="value(name.basename())" | head -n 1)
 echo "$BILLING_ACCOUNT"
 PROJECT_ID="vtv-$(date +%s)-$RANDOM"
 gcloud projects create "$PROJECT_ID"
@@ -442,6 +442,7 @@ Do it before the lab if you can: it takes about 20 minutes.
 | Credit not visible right after claiming | Normal: it takes 3-5 minutes. Then look for the billing account named `GDP Credit...` |
 | `gcloud billing accounts list` is empty | Wait 3-5 minutes after claiming; check Cloud Shell uses the same `@gmail.com` as the claim |
 | `gcloud projects create` fails | ID taken or invalid: run the `PROJECT_ID=` line again, then create again. Too many projects: reuse one of yours |
+| Two or more `GDP Credit` accounts in the list | Use the one with today's date: `BILLING_ACCOUNT=<ACCOUNT_ID>` with its ID, then link again |
 | `gcloud billing projects link` fails | `$BILLING_ACCOUNT` empty (wait, rerun that line) or the account is closed; use the open `GDP Credit` one |
 | `gcloud config get-value project` empty in a new tab | `source ~/.bashrc`; if still empty, redo the section 1 commands |
 | `npm ci` fails | `node -v` must be an LTS: 22 (22.12+), 24 or 26. Not 23 or 25 |
