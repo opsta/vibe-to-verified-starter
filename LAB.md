@@ -127,7 +127,8 @@ gcloud configuration. So put the project in `~/.bashrc` instead, where every tab
 
 ```sh
 gcloud billing accounts list
-BILLING_ACCOUNT=$(gcloud billing accounts list --filter="open=true AND displayName~GDP" --format="value(name.basename())" | head -n 1)
+BILLING_ACCOUNT=$(gcloud billing accounts list --filter="open=true AND displayName~GDP" \
+  --format="value(name.basename())" | head -n 1)
 echo "$BILLING_ACCOUNT"
 PROJECT_ID="vtv-$(date +%s)-$RANDOM"
 gcloud projects create "$PROJECT_ID"
@@ -144,7 +145,7 @@ project. Project IDs are global, so the date and a random number keep yours uniq
 asks you to authorize, click **Authorize**.
 
 - `echo "$BILLING_ACCOUNT"` prints nothing: the credit is not visible yet. Wait 1-2 minutes and run
-  the `BILLING_ACCOUNT=` line again. Still empty after 5 minutes? Check the claim page said it
+  the two `BILLING_ACCOUNT=` lines again. Still empty after 5 minutes? Check the claim page said it
   succeeded, and that Cloud Shell uses the same `@gmail.com`.
 - `services enable` says billing is not enabled: the link has not landed yet. Wait a minute and run
   it again.
