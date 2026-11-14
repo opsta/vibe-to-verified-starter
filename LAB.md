@@ -337,6 +337,12 @@ Open `conductor/tracks/qa_board_20261028/plan.md`. Check:
 
 **Gate 2 plan approved** when it is right. You tell the agent in the next step.
 
+**What "approve" means here:** nothing is built until you say so. Today you approve by pasting the
+build prompt in 3.1, which starts with "Gate 1 and Gate 2 approved". **Something wrong?** Do not
+paste it. Tell the agent what is wrong, let it fix the spec or plan, and read it again. Never build
+on a wrong spec. In a real team, approving is reviewing and merging the spec and plan as a pull
+request.
+
 > **Stuck?** `git fetch origin`, then `git switch step-1-spec` gives you the approved spec and plan.
 
 ---
