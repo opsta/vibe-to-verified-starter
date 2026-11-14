@@ -52,3 +52,18 @@ In your own fork:
 Then an agent can still propose a change to the core, but it cannot merge one. A human code owner reads it first.
 
 This repo does not ship a real CODEOWNERS file, because the owner must be someone in your own fork.
+
+### Limits
+
+What you need before the lock is enforced:
+
+- **GitHub:** a public fork works on the free plan. A private repo needs GitHub Pro, Team or Enterprise for branch
+  protection or rulesets. The CODEOWNERS file alone only requests reviews; it blocks nothing.
+- **GitLab:** Code Owners and "Required approval from code owners" need Premium or Ultimate. On Free you can still
+  protect `main` (who may push and merge), but approvals are not required.
+- **The agent's identity:** run the agent with its own account or token (a bot user or app) that has write access,
+  not admin. If it pushes as you, you cannot approve your own pull request. If its token is an admin's, it can
+  change the protection rules themselves.
+
+Without these, `CORE.lock` still catches accidental edits. Keep the human check from the lab: before you merge,
+read `git diff --stat` for the core paths (LAB.md 3.2). Any line it prints is a core change that a person must review.
