@@ -26,8 +26,8 @@ pass Gates 1 and 2 yourself, then the agent builds.
 
 | Min | Stage | Section | Jump point if stuck |
 |---|---|---|---|
-| before 0 | Set up Cloud Shell: install `agy`, your git name, clone the starter, plugins | 0 | none |
-| 0-5 | Claim the cloud credit, make and link your project, enable the services, point `agy` at your project (may use the start buffer) | 1 | none |
+| before 0 | Set up Cloud Shell: clone the starter, run `./scripts/setup.sh` (or by hand: install `agy`, your git name, plugins) | 0 | none |
+| 0-5 | Claim the cloud credit; the setup script (or you, by hand) makes and links your project, enable the services, point `agy` at your project (may use the start buffer) | 1 | none |
 | 5-10 | Start `agy` on Gemini 4 Argon, read spec and plan, approve | 2 | `step-1-spec` |
 | 10-40 | Build and verify: the agent writes the edges on the locked core, runs `/verify`, you check the lock and accept `VERIFY.md` | 3-4 | `step-3-build`, `step-4-verified` |
 | 40-50 | Publish: `gcloud run deploy`, open your own URL | 5 | `step-5-deployed` |
@@ -72,6 +72,43 @@ older). The first time you use it:
 Leave **ephemeral mode off** (Default mode, that is the default): ephemeral mode throws your files
 away. The first start of the day can take 2-3 minutes; after that it opens in seconds.
 
+### The quick way: one script (recommended)
+
+First claim the credit in your browser: section 1, steps 1-7 (the script waits up to 6 minutes for
+it to appear). Then, in Cloud Shell:
+
+```sh
+git clone --branch step-1-spec https://github.com/opsta/vibe-to-verified-starter && cd vibe-to-verified-starter
+./scripts/setup.sh          # --flash = free Gemini 3.8 Flash path, no credit needed
+source ~/.bashrc
+```
+
+Read it first if you like: `cat scripts/setup.sh`. It is part of the locked core. It does, in
+numbered steps, exactly what sections 0.2, 0.3 and 1 do by hand:
+
+1. checks that `gcloud`, `git`, `npm` and `node` are there,
+2. asks for your git name and e-mail if they are not set (0.3),
+3. installs the current `agy` with Google's official installer (0.2),
+4. installs the `conductor` and `verified` plugins (0.3),
+5. runs `npm ci` (expect `found 0 vulnerabilities`) and `npm run verify:contract` (0.3),
+6. finds the open billing account of the credit (its name has `GDP`); it waits for it if needed (1),
+7. makes your project `vtv-...`, links it to the credit and saves it in `~/.bashrc` (1),
+8. enables Cloud Run, Cloud Build, Artifact Registry and Agent Platform, and adds the `AGY_ADC_AUTH`
+   line to `~/.bashrc` so `agy` uses Gemini 4 Argon on the credit (1). `--flash` skips Agent Platform
+   and removes that line.
+
+It ends with a summary (project, billing account, model path) and `Next: source ~/.bashrc, agy`.
+Then go to section 2.1. If a step fails, the script says which one and which LAB section to do by
+hand; fix it and run `./scripts/setup.sh` again: it skips what is done, reuses your project and
+never adds a `~/.bashrc` line twice.
+
+You still see the Cloud Shell screens of 0.1 (Terms, Verify, **Authorize**) the first time.
+
+### Do it by hand (fallback)
+
+Sections 0.2, 0.3 and the Cloud Shell commands in section 1 are what the script does. Use them if
+the script fails at a step, or to see each command.
+
 ### 0.2 Install `agy`
 
 Cloud Shell already has an older `agy` in `/usr/bin`. Install the current one with the official
@@ -111,9 +148,9 @@ npm run verify:contract
 echo $?
 ```
 
-Expected: the last command prints `0`. `npm ci` may report "vulnerabilities" and suggest
-`npm audit fix`: ignore it. **Never run `npm audit fix`**: it changes the locked `package.json`
-and `package-lock.json`.
+Expected: the last command prints `0`, and `npm ci` says `found 0 vulnerabilities`. Other `npm warn`
+lines are fine. **Never run `npm audit fix`**: it changes the locked `package.json` and `package-lock.json`.
+A dependency fix belongs in the core, reviewed by a person.
 
 ![npm ci warnings: ignore them](docs/img/lab/08-npm-ci-warnings.webp)
 
@@ -166,7 +203,8 @@ The credit lasts about 12 hours, so your published app stops the day after.
 If the claim fails, do not worry: use free Flash (section 2.1) and the fallback box at the end for
 the deploy.
 
-Then, still in minutes 2-5, in Cloud Shell: make a project, link it to the credit, point the Google
+**Ran `./scripts/setup.sh`?** It did the rest of this section for you: go to section 2.1.
+By hand (fallback): still in minutes 2-5, in Cloud Shell, make a project, link it to the credit, point the Google
 Cloud CLI at it and enable the services now. Why now: the APIs need about a minute before the first
 deploy works, so by section 5 they are ready.
 
@@ -298,6 +336,12 @@ Open `conductor/tracks/qa_board_20261028/plan.md`. Check:
 - The last task runs `npm run verify:contract`.
 
 **Gate 2 plan approved** when it is right. You tell the agent in the next step.
+
+**What "approve" means here:** nothing is built until you say so. Today you approve by pasting the
+build prompt in 3.1, which starts with "Gate 1 and Gate 2 approved". **Something wrong?** Do not
+paste it. Tell the agent what is wrong, let it fix the spec or plan, and read it again. Never build
+on a wrong spec. In a real team, approving is reviewing and merging the spec and plan as a pull
+request.
 
 > **Stuck?** `git fetch origin`, then `git switch step-1-spec` gives you the approved spec and plan.
 
@@ -511,6 +555,8 @@ Keep your repo: `VERIFY.md` is the habit to take home. More: https://g.dev/ai/bu
 
 The event credit lasts about 12 hours. To do the lab later on your own:
 
+- **Setup**: `./scripts/setup.sh --flash` sets up free Flash; it makes a project only if it finds an
+  open `GDP` billing account.
 - **Model, free**: skip the Agent Platform lines in section 1 and use the free Gemini 3.8 Flash
   (box in section 2.1, option 1 Google OAuth). Its free quota is enough for the lab.
 - **Model, Argon**: use your own billing account in section 1 (set `BILLING_ACCOUNT` to its ID
@@ -571,11 +617,14 @@ Do it before the lab if you can: it takes about 20 minutes.
 |---|---|
 | Cloud Shell says you cannot use it (age) | Under 18 or Google does not know your age: use Appendix A or the fallback box |
 | Cloud Shell says "Verify your account" | Click **Verify**, scan the QR code with your phone (or use SMS), then click **Refresh** |
+| `./scripts/setup.sh` stopped at a step | Read the message; fix it and run the script again (finished steps are skipped), or do that LAB section by hand |
+| `./scripts/setup.sh: Permission denied` | Run `bash scripts/setup.sh` instead |
+| Script waits for the credit, then stops after 6 minutes | Check the claim page said it worked and Cloud Shell uses the same `@gmail.com`; run it again, or `./scripts/setup.sh --flash` |
 | Cloud Shell first start is slow | The first start of the day takes 2-3 minutes; wait |
 | Installer prints `ERROR: logging before google.Init` | Harmless. Run `source ~/.bashrc` |
 | `agy --version` prints 1.4 | Cloud Shell's old `agy` comes first: `source ~/.bashrc` |
 | `agy: command not found` | Cloud Shell: `source ~/.bashrc`. Laptop: new terminal; add `~/.local/bin` to `PATH` |
-| `npm ci` reports vulnerabilities | Ignore them. Never run `npm audit fix`: it changes the locked `package.json` |
+| `npm ci` reports vulnerabilities | Make sure you are on the latest `main` (`git pull`). Never run `npm audit fix`: it changes the locked `package.json` |
 | `agy` asks "Select login method" but you want Argon | The variables are not loaded: `/exit`, `source ~/.bashrc`, `agy`. Check the line from section 1 is in `~/.bashrc` |
 | `agy` says a Gemini 4 model "is not recognized" | `GOOGLE_CLOUD_QUOTA_PROJECT` is missing: `/exit`, `source ~/.bashrc`, `agy` |
 | No "(Agent Platform)" in the banner after switching back from free Flash | Expected: the free path uses your Google sign-in |
