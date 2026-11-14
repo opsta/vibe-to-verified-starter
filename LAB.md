@@ -111,9 +111,9 @@ npm run verify:contract
 echo $?
 ```
 
-Expected: the last command prints `0`. `npm ci` may report "vulnerabilities" and suggest
-`npm audit fix`: ignore it. **Never run `npm audit fix`**: it changes the locked `package.json`
-and `package-lock.json`.
+Expected: the last command prints `0`, and `npm ci` says `found 0 vulnerabilities`. Other `npm warn`
+lines are fine. **Never run `npm audit fix`**: it changes the locked `package.json` and `package-lock.json`.
+A dependency fix belongs in the core, reviewed by a person.
 
 ![npm ci warnings: ignore them](docs/img/lab/08-npm-ci-warnings.webp)
 
@@ -575,7 +575,7 @@ Do it before the lab if you can: it takes about 20 minutes.
 | Installer prints `ERROR: logging before google.Init` | Harmless. Run `source ~/.bashrc` |
 | `agy --version` prints 1.4 | Cloud Shell's old `agy` comes first: `source ~/.bashrc` |
 | `agy: command not found` | Cloud Shell: `source ~/.bashrc`. Laptop: new terminal; add `~/.local/bin` to `PATH` |
-| `npm ci` reports vulnerabilities | Ignore them. Never run `npm audit fix`: it changes the locked `package.json` |
+| `npm ci` reports vulnerabilities | Make sure you are on the latest `main` (`git pull`). Never run `npm audit fix`: it changes the locked `package.json` |
 | `agy` asks "Select login method" but you want Argon | The variables are not loaded: `/exit`, `source ~/.bashrc`, `agy`. Check the line from section 1 is in `~/.bashrc` |
 | `agy` says a Gemini 4 model "is not recognized" | `GOOGLE_CLOUD_QUOTA_PROJECT` is missing: `/exit`, `source ~/.bashrc`, `agy` |
 | No "(Agent Platform)" in the banner after switching back from free Flash | Expected: the free path uses your Google sign-in |
