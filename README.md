@@ -6,6 +6,35 @@ A small Q&A board on Firebase. Humans own a small, locked, tested core (`src/cor
 the rules tests and the check scripts). An agent writes only the edges in `src/ui/`. The rules for the agent are
 in [AGENTS.md](AGENTS.md). The list of locked files is in [CORE.lock](CORE.lock).
 
+## How the app works
+
+```mermaid
+flowchart TD
+  user["Attendee in a browser"] -->|HTTPS| run["Cloud Run service<br/>server.mjs serves the built dist/"]
+  deploy["gcloud run deploy --source .<br/>or pipeline.yml on main"] -.->|builds and deploys| run
+  run --> main["src/main.ts<br/>picks the store and the user"]
+  main --> ui["src/ui/<br/>Q&A board UI"]
+  ui -->|"list, ask, upvote"| api["src/core/store.ts<br/>QuestionStore API"]
+  api --> mem["src/core/memory-store.ts<br/>default, used in the lab<br/>demo user, 3 seed questions"]
+  api --> fs["src/core/firestore-store.ts<br/>when VITE_FIREBASE_* are set at build time"]
+  fs --> auth["Firebase Auth<br/>anonymous sign-in"]
+  fs --> rules["firestore.rules<br/>anyone reads, signed-in users ask,<br/>one upvote per user"]
+  rules --> db[("Firestore")]
+
+  classDef edge fill:#e6f4ea,stroke:#34a853,stroke-width:2px,stroke-dasharray:6 4,color:#202124
+  classDef core fill:#1f2a44,stroke:#1f2a44,color:#ffffff
+  class ui edge
+  class main,api,mem,fs,rules core
+```
+
+Green, dashed: the edge, written by the agent. Dark: the locked core, listed in `CORE.lock`. The UI talks to the core
+only through the `QuestionStore` API (`list`, `ask`, `upvote`).
+
+- **Memory store (the lab):** without `VITE_FIREBASE_*` the app keeps the questions in the browser tab, so they reset
+  on reload. Everyone is the demo user; add `?signedOut` to the URL to see the signed-out view.
+- **Firestore:** with the Firebase settings from [docs/deploy.md](docs/deploy.md), users sign in anonymously and
+  `firestore.rules` decides who may ask and upvote.
+
 ```sh
 npm ci
 npm run verify:contract   # type check, unit tests, core check, test check, banned-word check
