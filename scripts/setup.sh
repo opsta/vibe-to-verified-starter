@@ -9,7 +9,7 @@
 #
 # What it does (each step is the same as a LAB.md section you can also do by hand):
 #   1. Checks that gcloud, git and npm are here                     (LAB.md 0.1)
-#   2. Sets your git name and e-mail, if they are not set yet       (LAB.md 0.3)
+#   2. Sets your git name and e-mail from your account, if not set  (LAB.md 0.3)
 #   3. Installs the current agy with Google's official installer    (LAB.md 0.2)
 #   4. Installs the conductor and verified plugins for agy          (LAB.md 0.3)
 #   5. Runs npm ci and npm run verify:contract in this folder       (LAB.md 0.3)
@@ -117,20 +117,13 @@ step "Set your git name and e-mail" "0.3"
 if [ -n "$(git config --global user.name || true)" ] && [ -n "$(git config --global user.email || true)" ]; then
   info "Already set: $(git config --global user.name)"
 else
-  name="${GIT_NAME:-}"
-  email="${GIT_EMAIL:-}"
-  if [ -z "$name" ] || [ -z "$email" ]; then
-    if [ ! -t 0 ]; then
-      echo "No terminal to ask in. Run again with GIT_NAME=\"Your Name\" GIT_EMAIL=\"you@example.com\"." >&2
-      false
-    fi
-    info "Conductor commits each task, so git needs a name. Any name and e-mail you like."
-    while [ -z "$name" ]; do read -r -p "      Your name: " name; done
-    while [ -z "$email" ]; do read -r -p "      Your e-mail: " email; done
-  fi
+  # Default: the account you are signed in with, e.g. someone@gmail.com -> name "someone".
+  email="${GIT_EMAIL:-$ACCOUNT}"
+  name="${GIT_NAME:-${email%%@*}}"
   git config --global user.name "$name"
   git config --global user.email "$email"
-  info "Set: $name"
+  info "Set: $name <$email>, from your signed-in account. Commits stay in your Cloud Shell."
+  info "Another name? git config --global user.name \"Your Name\""
 fi
 
 # ---------------------------------------------------------------------------------------------
