@@ -87,7 +87,7 @@ Read it first if you like: `cat scripts/setup.sh`. It is part of the locked core
 numbered steps, exactly what sections 0.2, 0.3 and 1 do by hand:
 
 1. checks that `gcloud`, `git`, `npm` and `node` are there,
-2. asks for your git name and e-mail if they are not set (0.3),
+2. sets your git name and e-mail from the account you are signed in with, if they are not set (0.3),
 3. installs the current `agy` with Google's official installer (0.2),
 4. installs the `conductor` and `verified` plugins (0.3),
 5. runs `npm ci` (expect `found 0 vulnerabilities`) and `npm run verify:contract` (0.3),
