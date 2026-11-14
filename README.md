@@ -2,6 +2,8 @@
 
 Starter repo for the DevFest 2026 talk "Fix the Core, Generate the Edges" and the lab in [LAB.md](LAB.md).
 
+Slides (handout PDF): https://github.com/opsta/vibe-to-verified-starter/releases/latest/download/vibe-to-verified-handout.pdf
+
 A small Q&A board on Firebase. Humans own a small, locked, tested core (`src/core/`, `firestore.rules`,
 the rules tests and the check scripts). An agent writes only the edges in `src/ui/`. The rules for the agent are
 in [AGENTS.md](AGENTS.md). The list of locked files is in [CORE.lock](CORE.lock).
