@@ -17,6 +17,7 @@ const FILES = [
   'scripts/check-tests.mjs',
   'scripts/check-tests.test.mjs',
   'scripts/check.mjs',
+  'scripts/setup.sh',
   'vitest.rules.config.ts',
   'vitest.config.ts',
   'package.json',
