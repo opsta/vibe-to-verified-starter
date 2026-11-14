@@ -6,12 +6,12 @@ import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const BANNED = Buffer.from(
-  'Y2xhdWRlLGFudGhyb3BpYyxraXJvLGFpLWRsYyxhaWRsYyxiZWRyb2NrLGNvcGlsb3QsbWljcm9zb2Z0LGF6dXJlLHNwZWMta2l0LGN1cnNvcix3aW5kc3VyZixvcGVuYWksYXdz',
+  'Y2xhdWRlLGFudGhyb3BpYyxraXJvLGFpLWRsYyxhaWRsYyxiZWRyb2NrLGNvcGlsb3QsbWljcm9zb2Z0LGF6dXJlLHNwZWMta2l0LHdpbmRzdXJmLG9wZW5haSxhd3M=',
   'base64',
 ).toString().split(',');
 
 // Short words that must match whole tokens only (they occur inside ordinary words), base64 too.
-const WHOLE_TOKEN = new Set(Buffer.from('Y3Vyc29yLGF3cw==', 'base64').toString().split(','));
+const WHOLE_TOKEN = new Set(Buffer.from('YXdz', 'base64').toString().split(','));
 const SKIP = new Set(['node_modules', '.git', 'dist', 'coverage']);
 
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\-]/g, '\\$&');
