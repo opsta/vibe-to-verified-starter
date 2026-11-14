@@ -98,6 +98,9 @@ numbered steps, exactly what sections 0.2, 0.3 and 1 do by hand:
    and removes that line.
 
 It ends with a summary (project, billing account, model path) and `Next: source ~/.bashrc, agy`.
+
+![setup.sh: the credit found, the project made, and the summary](docs/img/lab/28-setup-summary.webp)
+
 Then go to section 2.1. If a step fails, the script says which one and which LAB section to do by
 hand; fix it and run `./scripts/setup.sh` again: it skips what is done, reuses your project and
 never adds a `~/.bashrc` line twice.
@@ -152,7 +155,7 @@ Expected: the last command prints `0`, and `npm ci` says `found 0 vulnerabilitie
 lines are fine. **Never run `npm audit fix`**: it changes the locked `package.json` and `package-lock.json`.
 A dependency fix belongs in the core, reviewed by a person.
 
-![npm ci warnings: ignore them](docs/img/lab/08-npm-ci-warnings.webp)
+![npm ci: found 0 vulnerabilities; the npm warn lines are fine](docs/img/lab/08-npm-ci-warnings.webp)
 
 Install the two plugins (a new Cloud Shell does not have them) and check:
 
@@ -305,6 +308,8 @@ The bottom-right corner now says `auto · Gemini 4 Argon · medium`. `agy` remem
 > sed -i '/AGY_ADC_AUTH/d' ~/.bashrc
 > ```
 >
+> Set up with the script? `./scripts/setup.sh --flash` removes that line for you.
+>
 > In the new tab, `cd vibe-to-verified-starter` and run `agy`. At "Select login method" choose
 > **1. Google OAuth**. Click **Click here to authenticate**, choose your `@gmail.com`, **Sign in**,
 > then **Copy to Clipboard**, go back to Cloud Shell, paste the code (Ctrl+V, or Cmd+V on a Mac) and
@@ -350,7 +355,7 @@ request.
 ## 3. Build (minutes 10-40, together with section 4)
 
 Build and verify are one stage of 30 minutes: the agent builds, then runs `/verify` itself, and you
-pass Gate 3 inside the same window. In our test runs the build took about 9 minutes on Gemini 4 Argon
+pass Gate 3 inside the same window. In our test runs the build took 4 to 9 minutes on Gemini 4 Argon
 and 13 to 16 minutes on the free Gemini 3.8 Flash, from the paste below to `VERIFY.md`; the rest of
 the window is for your checks and for slower runs.
 
